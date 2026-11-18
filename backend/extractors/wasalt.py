@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from urllib.parse import urlparse, parse_qs
 
 from bs4 import BeautifulSoup, Tag
@@ -16,7 +16,9 @@ class WasaltExtractor:
 
     # Detail URL pattern: /en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799
     DETAIL_PATH_PATTERN = r"^/en/property/sale/[-_\w]+-\d+$"
-    LISTING_PATH_PATTERN = r"^/en/(?:villas-for-sale|apartments-for-sale|lands-for-sale)/.+$"
+    LISTING_PATH_PATTERN = (
+        r"^/en/(?:villas-for-sale|apartments-for-sale|lands-for-sale)/.+$"
+    )
     SEARCH_PATH_PATTERN = r"^/en/sale/search\?"
 
     def __init__(self, html: str, url: str) -> None:
@@ -120,7 +122,9 @@ class WasaltExtractor:
 
         # Check main price element
         price_text = None
-        price_elem = self.soup.find("span", string=re.compile(r"[\d,]+\s*SAR", re.IGNORECASE))
+        price_elem = self.soup.find(
+            "span", string=re.compile(r"[\d,]+\s*SAR", re.IGNORECASE)
+        )
         if price_elem:
             price_text = self._strip(price_elem.get_text())
 
@@ -150,7 +154,9 @@ class WasaltExtractor:
         """Extract number of bedrooms."""
         # Check H1 or hero text
         h1_text = self._extract_first_h1() or ""
-        br_match = re.search(r"(\d+)\s*bedroom|bedrooms?\s*(:?\s*\d+)", h1_text, re.IGNORECASE)
+        br_match = re.search(
+            r"(\d+)\s*bedroom|bedrooms?\s*(:?\s*\d+)", h1_text, re.IGNORECASE
+        )
         if br_match:
             try:
                 return int(br_match.group(1))
@@ -203,7 +209,12 @@ class WasaltExtractor:
         type_lower += h1.lower() + " "
 
         # Check for type badges in the page
-        for span in self.soup.find_all("span", class_=re.compile(r".*(villa|apartment|land|building|duplex|floor|rest).*", re.IGNORECASE)):
+        for span in self.soup.find_all(
+            "span",
+            class_=re.compile(
+                r".*(villa|apartment|land|building|duplex|floor|rest).*", re.IGNORECASE
+            ),
+        ):
             t = self._strip(span.get_text())
             if t:
                 type_lower += t.lower() + " "
@@ -260,7 +271,9 @@ class WasaltExtractor:
             # Re-check: land area typically smaller or larger depending on property type
             # For villas: land often larger; for apartments: building area larger
             # Try to find a second distinct value
-            all_areas = re.findall(r"(\d+(?:\.\d+)?)\s*[Ss][Qq][Mm]", self._strip(self.soup.get_text()))
+            all_areas = re.findall(
+                r"(\d+(?:\.\d+)?)\s*[Ss][Qq][Mm]", self._strip(self.soup.get_text())
+            )
             if len(all_areas) >= 2:
                 building_area = float(all_areas[1])
 
@@ -279,7 +292,9 @@ class WasaltExtractor:
 
         # Fallback: find the main content area's first substantial text block
         if not desc_candidates:
-            main = self.soup.find("main") or self.soup.find("div", class_=lambda c: c and "main" in c.lower() if c else False)
+            main = self.soup.find("main") or self.soup.find(
+                "div", class_=lambda c: c and "main" in c.lower() if c else False
+            )
             if main:
                 for p in main.find_all("p"):
                     t = self._strip(p.get_text())
@@ -305,18 +320,34 @@ class WasaltExtractor:
 
         return None
 
-    def _extract_amenities(self) -> List[str]:
+    def _extract_amenities(self) -> list[str]:
         """Extract feature amenities."""
-        amenities: List[str] = []
+        amenities: list[str] = []
 
         # Look for feature lists
         for li in self.soup.find_all("li"):
             t = self._strip(li.get_text())
             if t and len(t) > 3 and len(t) < 100:
                 # Filter out noise terms
-                noise_terms = {"sqm", "m²", "bedroom", "bathroom", "saudi", "code", "professional",
-                               "modern", "high-quality", "photo", "documented", "steel", "tank",
-                               "sewage", "water", "plumbing", "foundations"}
+                noise_terms = {
+                    "sqm",
+                    "m²",
+                    "bedroom",
+                    "bathroom",
+                    "saudi",
+                    "code",
+                    "professional",
+                    "modern",
+                    "high-quality",
+                    "photo",
+                    "documented",
+                    "steel",
+                    "tank",
+                    "sewage",
+                    "water",
+                    "plumbing",
+                    "foundations",
+                }
                 t_lower = t.lower()
                 if not any(nt in t_lower for nt in noise_terms):
                     amenities.append(t)
@@ -337,17 +368,27 @@ class WasaltExtractor:
 
         return deduped
 
-    def _extract_facilities(self) -> List[str]:
+    def _extract_facilities(self) -> list[str]:
         """Extract building facilities."""
-        facilities: List[str] = []
+        facilities: list[str] = []
 
         # Look for facility lists - common patterns
         for h4 in self.soup.find_all("h4"):
             t = self._strip(h4.get_text())
             if t and len(t) > 3 and len(t) < 100:
                 # Common facility keywords
-                facility_keywords = ["water", "sewage", "plumbing", " tank", "steel", "code", "finish",
-                                     "modern", "professional", "documented"]
+                facility_keywords = [
+                    "water",
+                    "sewage",
+                    "plumbing",
+                    " tank",
+                    "steel",
+                    "code",
+                    "finish",
+                    "modern",
+                    "professional",
+                    "documented",
+                ]
                 t_lower = t.lower()
                 if any(kw in t_lower for kw in facility_keywords):
                     facilities.append(t)
@@ -355,7 +396,9 @@ class WasaltExtractor:
         # Check for facility icon/text blocks
         for div in self.soup.find_all("div"):
             t = self._strip(div.get_text())
-            if t and any(kw in t.lower() for kw in ["water", "sewage", "steel", "code", "finish"]):
+            if t and any(
+                kw in t.lower() for kw in ["water", "sewage", "steel", "code", "finish"]
+            ):
                 if len(t) > 10 and len(t) < 200:
                     facilities.append(t)
 
@@ -369,10 +412,12 @@ class WasaltExtractor:
 
         return deduped
 
-    def _extract_reference_number(self) -> Optional[str]:
+    def _extract_reference_number(self) -> str | None:
         """Extract property reference number."""
         # Pattern: "Ref no. 289517"
-        ref_tag = self.soup.find(string=re.compile(r"Ref no|Reference|Ref#", re.IGNORECASE))
+        ref_tag = self.soup.find(
+            string=re.compile(r"Ref no|Reference|Ref#", re.IGNORECASE)
+        )
         if ref_tag:
             m = re.search(r"[#]?(\d+)", self._strip(ref_tag))
             if m:
@@ -387,7 +432,7 @@ class WasaltExtractor:
 
         return None
 
-    def _extract_last_updated(self) -> Optional[str]:
+    def _extract_last_updated(self) -> str | None:
         """Extract last updated timestamp."""
         # Pattern: "Last updated: 4 days ago"
         for span in self.soup.find_all("span"):
@@ -396,7 +441,7 @@ class WasaltExtractor:
                 return t
         return None
 
-    def _extract_broker(self) -> Optional[Dict[str, Any]]:
+    def _extract_broker(self) -> Dict[str, Any] | None:
         """Extract broker/agent information. Avoid personal data."""
         broker: Dict[str, Any] = {}
 
@@ -422,7 +467,11 @@ class WasaltExtractor:
             return None
 
         # Filter out purely numeric strings that aren't license numbers
-        if broker.get("license_number") and broker["license_number"].isdigit() and len(broker["license_number"]) < 5:
+        if (
+            broker.get("license_number")
+            and broker["license_number"].isdigit()
+            and len(broker["license_number"]) < 5
+        ):
             broker.pop("license_number", None)
 
         return broker if broker else None
@@ -464,14 +513,26 @@ class WasaltExtractor:
 
     # ── Listing page extraction (summary data from category pages) ──
 
-    def extract_listing_summary(self) -> List[Dict[str, Any]]:
+    def extract_listing_summary(self) -> list[dict[str, Any]]:
         """Extract summary data from listing/category pages.
         Returns list of dicts with minimal fields for property card summaries.
         """
         properties = []
 
         # Property cards are typically in divs with specific classes
-        cards = self.soup.find_all("div", class_=lambda c: c and ("card" in c.lower() or "property" in c.lower() or "listing" in c.lower()) if c else False)
+        cards = self.soup.find_all(
+            "div",
+            class_=lambda c: (
+                c
+                and (
+                    "card" in c.lower()
+                    or "property" in c.lower()
+                    or "listing" in c.lower()
+                )
+                if c
+                else False
+            ),
+        )
 
         if not cards:
             # Fallback: look for any div with price-like content
@@ -479,7 +540,7 @@ class WasaltExtractor:
 
         for card in cards[:20]:  # Limit to first 20 cards
             try:
-                summary: Dict[str, Any] = {}
+                summary: dict[str, Any] = {}
 
                 # Try to extract title/name
                 title_elem = card.find("h3") or card.find("h2") or card.find("h4")
@@ -487,9 +548,13 @@ class WasaltExtractor:
                     summary["title"] = self._strip(title_elem.get_text())
 
                 # Try to extract price
-                price_elem = card.find(string=re.compile(r"[\d,]+\s*SAR", re.IGNORECASE))
+                price_elem = card.find(
+                    string=re.compile(r"[\d,]+\s*SAR", re.IGNORECASE)
+                )
                 if price_elem:
-                    pm = re.search(r"([\d,]+)\s*SAR", self._strip(price_elem), re.IGNORECASE)
+                    pm = re.search(
+                        r"([\d,]+)\s*SAR", self._strip(price_elem), re.IGNORECASE
+                    )
                     if pm:
                         summary["price"] = float(pm.group(1).replace(",", ""))
                         summary["currency"] = "SAR"
@@ -515,7 +580,7 @@ class WasaltExtractor:
 
     # ── Public entry point ──────────────────────────────────────
 
-    def extract(self) -> Union[WasaltProperty, List[Dict[str, Any]]]:
+    def extract(self) -> Union[WasaltProperty, list[dict[Any, Any]]]:
         """Extract data based on URL pattern."""
         if re.search(self.DETAIL_PATH_PATTERN, self.path):
             return self.extract_detail()

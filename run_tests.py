@@ -1,15 +1,29 @@
 #!/usr/bin/env python
 import sys
-sys.path.insert(0, r"C:\Programming\RealtyAI")
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
 
 from tests.test_extractors import *
 
 tests = [
     # DarGlobal
-    ("darglobal_top_of_astera_returns_model", test_darglobal_top_of_astera_returns_model),
-    ("darglobal_trump_penthouse_returns_model", test_darglobal_trump_penthouse_returns_model),
-    ("darglobal_one_of_one_has_required_fields", test_darglobal_one_of_one_has_required_fields),
-    ("darglobal_extractor_handles_one_of_one_url", test_darglobal_extractor_handles_one_of_one_url),
+    (
+        "darglobal_top_of_astera_returns_model",
+        test_darglobal_top_of_astera_returns_model,
+    ),
+    (
+        "darglobal_trump_penthouse_returns_model",
+        test_darglobal_trump_penthouse_returns_model,
+    ),
+    (
+        "darglobal_one_of_one_has_required_fields",
+        test_darglobal_one_of_one_has_required_fields,
+    ),
+    (
+        "darglobal_extractor_handles_one_of_one_url",
+        test_darglobal_extractor_handles_one_of_one_url,
+    ),
     ("darglobal_extractor_handles_blog_url", test_darglobal_extractor_handles_blog_url),
     # Wasalt
     ("wasalt_detail_returns_model", test_wasalt_detail_returns_model),
@@ -34,7 +48,7 @@ for name, func in tests:
         func()
         print(f"  PASS: {name}")
         passed += 1
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"  FAIL: {name} - {e}")
         failed += 1
 

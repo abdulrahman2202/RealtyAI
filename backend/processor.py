@@ -2,14 +2,20 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Optional
 
-from backend.models import BaseProperty, DarGlobalProperty, WasaltProperty, ExtractedRecord
+from backend.models import (
+    BaseProperty,
+    DarGlobalProperty,
+    WasaltProperty,
+    ExtractedRecord,
+)
 
 
 # ── Whitespace / encoding normalization ──────────────────────
+
 
 def normalize_whitespace(text: Optional[str]) -> Optional[str]:
     """Normalize whitespace: trim, collapse internal runs, preserve meaningful single spaces."""
@@ -38,6 +44,7 @@ def normalize_encoding(text: Any) -> Optional[str]:
 
 
 # ── Helper: check if a line looks like a property name ──────────
+
 
 def _is_property_name_line(text: str) -> bool:
     """Determine if a text line looks like a property/project name.
@@ -81,7 +88,7 @@ def _is_property_name_line(text: str) -> bool:
     return True
 
 
-def _find_property_name(block: List[str]) -> Optional[str]:
+def _find_property_name(block: list[str]) -> Optional[str]:
     """Find the property name from a block of TXT file lines.
 
     Each block has varying structure. Look for lines that property name
@@ -96,7 +103,8 @@ def _find_property_name(block: List[str]) -> Optional[str]:
 
 # ── DarGlobal TXT file parser ────────────────────────────────
 
-def parse_darglobal_one_of_one(filepath: Path) -> List[Dict[str, Any]]:
+
+def parse_darglobal_one_of_one(filepath: path) -> list[dict[str, Any]]:
     """Parse the DarGlobal one-of-one.txt file.
 
     Property blocks are demarcated by "Discover" lines in the TXT file.
@@ -110,12 +118,12 @@ def parse_darglobal_one_of_one(filepath: Path) -> List[Dict[str, Any]]:
     with filepath.open("r", encoding="utf-8") as f:
         content = f.read()
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     lines = content.splitlines()
 
     # ── Step 1: Split into blocks separated by "Discover" lines ────────
-    blocks: List[List[str]] = []
-    current_block_lines: List[str] = []
+    blocks: list[list[str]] = []
+    current_block_lines: list[str] = []
 
     for line in lines:
         stripped = line.strip()
@@ -146,7 +154,7 @@ def parse_darglobal_one_of_one(filepath: Path) -> List[Dict[str, Any]]:
         url: Optional[str] = None
 
         # Direct name->URL mappings (exact matches first)
-        name_to_url: Dict[str, str] = {
+        name_to_url: dict[str, str] = {
             "AIDA | Oman": "https://darglobal.co.uk/one-of-one",
             "Azure Oceanfront Villas Interiors by Fendi Casa": "https://darglobal.co.uk/one-of-one/fendi-casa-azure-oceanfront-villas",
             "THE ALBERT HALL MANSION": "https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION",
@@ -224,14 +232,17 @@ def parse_darglobal_one_of_one(filepath: Path) -> List[Dict[str, Any]]:
                     city = line_stripped
                     break
                 # Also check for "City, Region" patterns with other countries
-                if re.search(r"[A-Z][a-z]+,\s*[A-Za-z]+\s*(UAE|UK|USA|Spain|Oman|Qatar)$", line_stripped):
+                if re.search(
+                    r"[A-Z][a-z]+,\s*[A-Za-z]+\s*(UAE|UK|USA|Spain|Oman|Qatar)$",
+                    line_stripped,
+                ):
                     city = line_stripped
                     break
 
         # ── Extract description ────────────────────────────────────────
         # Description is the substantial text in the block after the property name
         # and before "AVAILABLE ON REQUEST" or "Discover" markers
-        description_parts: List[str] = []
+        description_parts: list[str] = []
 
         # Collect description lines: skip empties, "AVAILABLE ON REQUEST", "Discover"
         # Start after the property name line
@@ -255,17 +266,24 @@ def parse_darglobal_one_of_one(filepath: Path) -> List[Dict[str, Any]]:
                 found_name = False  # Description ends at Discover
                 continue
             # Accumulate description text
-            if line_stripped and line_stripped not in ("AVAILABLE ON REQUEST", "Discover"):
+            if line_stripped and line_stripped not in (
+                "AVAILABLE ON REQUEST",
+                "Discover",
+            ):
                 # Filter out very short noise lines
                 if len(line_stripped) > 3:
                     description_parts.append(line_stripped)
 
         # Normalize description
-        description = normalize_whitespace(" ".join(description_parts)) if description_parts else None
+        description = (
+            normalize_whitespace(" ".join(description_parts))
+            if description_parts
+            else None
+        )
 
         # ── Build the record ──────────────────────────────────────────
         # Map known property names to canonical titles
-        title_map: Dict[str, str] = {
+        title_map: dict[str, str] = {
             "A WORLD OF ONE'S OWN": "Premiere Edition Collection",
             "AIDA | Oman": "AIDA | Oman",
             "Azure Oceanfront Villas Interiors by Fendi Casa": "Fendi Casa Azure Oceanfront Villas",
@@ -300,7 +318,7 @@ def parse_darglobal_one_of_one(filepath: Path) -> List[Dict[str, Any]]:
             "status": status,
             "availability": availability,
             "reference_number": None,  # Not in this TXT format
-            "extracted_at": datetime.utcnow().isoformat() + "Z",
+            "extracted_at": datetime.now(UTC).isoformat() + "Z",
         }
 
         records.append(record)
@@ -308,7 +326,7 @@ def parse_darglobal_one_of_one(filepath: Path) -> List[Dict[str, Any]]:
     return records
 
 
-def parse_darglobal_top_of_astera(filepath: Path) -> List[Dict[str, Any]]:
+def parse_darglobal_top_of_astera(filepath: Path) -> list[dict[str, Any]]:
     """Parse the DarGlobal top-of-the-astera.txt file.
 
     Returns list of dicts with extracted fields.
@@ -321,14 +339,14 @@ def parse_darglobal_top_of_astera(filepath: Path) -> List[Dict[str, Any]]:
     with filepath.open("r", encoding="utf-8") as f:
         content = f.read()
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     lines = content.splitlines()
 
     # This file contains one property: Top of the Astera
     # Verified structure from reconnaissance.
 
     title = None
-    description_parts: List[str] = []
+    description_parts: list[str] = []
     city = None
     status = None
     availability = None
@@ -352,15 +370,28 @@ def parse_darglobal_top_of_astera(filepath: Path) -> List[Dict[str, Any]]:
                 # "Buy Branded Homes" etc. are collection headers, not city names
                 first_part = parts[0]
                 # Skip if it looks like a collection header or marketing phrase
-                skip_phrases = {"buy branded homes", "million dollar houses",
-                              "for sale", "darglobal", "premiere edition"}
+                skip_phrases = {
+                    "buy branded homes",
+                    "million dollar houses",
+                    "for sale",
+                    "darglobal",
+                    "premiere edition",
+                }
                 if first_part.lower() not in skip_phrases:
                     city = first_part
 
         # Description accumulation: skip headings, keep relevant text
-        skip_headings = {"A World First", "Beyond the Clouds", "ELEVATE YOUR WORLD",
-                        "THE LIVING SPACES", "LOCATION"}
-        if line not in skip_headings and line not in ("AVAILABLE ON REQUEST", "Discover"):
+        skip_headings = {
+            "A World First",
+            "Beyond the Clouds",
+            "ELEVATE YOUR WORLD",
+            "THE LIVING SPACES",
+            "LOCATION",
+        }
+        if line not in skip_headings and line not in (
+            "AVAILABLE ON REQUEST",
+            "Discover",
+        ):
             # Keep text lines that are substantial and not noise
             if line and len(line) > 5:
                 description_parts.append(line)
@@ -404,7 +435,7 @@ def parse_darglobal_top_of_astera(filepath: Path) -> List[Dict[str, Any]]:
             "status": status,
             "availability": availability,
             "reference_number": None,
-            "extracted_at": datetime.utcnow().isoformat() + "Z",
+            "extracted_at": datetime.now(UTC).isoformat() + "Z",
         }
         records.append(record)
 

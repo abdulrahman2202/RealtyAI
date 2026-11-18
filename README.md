@@ -160,7 +160,9 @@ from pathlib import Path
 
 # Parse existing DarGlobal TXT files
 records_ooo = parse_darglobal_one_of_one(Path("data/raw/darglobal/one-of-one.txt.txt"))
-records_ta = parse_darglobal_top_of_astera(Path("data/raw/darglobal/top-of-the-astera.txt.txt"))
+records_ta = parse_darglobal_top_of_astera(
+    Path("data/raw/darglobal/top-of-the-astera.txt.txt")
+)
 
 # Combine and deduplicate
 all_records = records_ooo + records_ta
@@ -178,7 +180,9 @@ urls = [
     "https://darglobal.co.uk/one-of-one/top-of-the-astera",
     "https://darglobal.co.uk/one-of-one/trump-penthouse",
 ]
-records = crawler.crawl_urls(urls, extract_darglobal, extract_wasalt, sources=["darglobal"] * len(urls))
+records = crawler.crawl_urls(
+    urls, extract_darglobal, extract_wasalt, sources=["darglobal"] * len(urls)
+)
 
 print(f"Processed {len(records)} properties (dry run)")
 ```
@@ -242,3 +246,57 @@ All 15 tests pass using local HTML fixtures with no live website requests.
 - **Extraction timestamp preserved**: ISO 8601 timestamp on every record
 - **Deduplication**: Working correctly (2 duplicates removed from 4 raw records)
 - **Validation transparency**: Full report generated with field coverage metrics
+
+## RAG Foundation (Phase 3)
+
+### Overview
+This phase adds Retrieval-Augmented Generation (RAG) capabilities to the RealtyAI foundation, enabling semantic property question answering using ChromaDB and Sentence Transformers.
+
+### Architecture
+- **Vector Database**: ChromaDB persistent storage at `data/vector_db/`
+- **Embeddings**: Sentence Transformers `all-MiniLM-L6-v2` (local, no API keys required)
+- **Pipeline**: `backend/rag.py` — ChromaDB client, SentenceTransformer encoder, indexing of DarGlobal records, `search(query, k=4)` function
+- **Data**: 2 DarGlobal property records indexed (Albert Hall Mansions, Top Of the Astera); ready for Wasalt addition
+
+### Installation
+```bash
+pip install chromadb sentence-transformers
+```
+
+### Usage
+```python
+from backend.rag import ChromaVectorStore, search_properties
+
+# Initialize vector store from processed data
+store = ChromaVectorStore.from_processed_data()
+
+# Search for properties
+results = search_properties("luxury penthouse with balcony", k=3)
+for r in results:
+    print(f"{r['title']} — {r['source_url']} (distance: {r['distance']:.3f})")
+```
+
+### Test Results
+All 12 RAG tests pass (indexing verification, title/URL preservation, retrieval, distance normalisation, empty DB behaviour, unknown query handling).
+
+### Search Quality
+- Queries like "Albert Hall Mansions", "Top of the Astera", "luxury", "penthouse" return relevant results
+- Distance values normalised to [0, 1] range (0 = exact match, 1 = most dissimilar)
+- Unknown queries return empty results without crashing
+
+### Development Commands
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run RAG tests specifically
+python -m pytest tests/test_rag.py -v
+
+# Index processed data into ChromaDB
+python -c "from backend.rag import ChromaVectorStore; store = ChromaVectorStore.from_processed_data(); print(f'Indexed {store.total_records} records')"
+```
+
+## Requirements (All Met)
+
+### Phase 1 (Crawler Foundation)
+...

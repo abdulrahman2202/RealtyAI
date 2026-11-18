@@ -19,11 +19,13 @@ PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed" / "darglobal
 
 # ── Helpers ──────────────────────────────────────────────────────
 
+
 def _load_json(name: str) -> dict:
     return json.loads((PROCESSED_DIR / name).read_text(encoding="utf-8"))
 
 
 # ── Tests ────────────────────────────────────────────────────────
+
 
 def test_init_from_processed_data_indexes_two_records():
     """Initialising from processed data should index both DarGlobal records."""
@@ -116,7 +118,9 @@ def test_search_k_default_four():
     init_from_processed_data()
 
     results = search("luxury property")
-    assert len(results) <= 4, f"Expected at most 4 results with default k, got {len(results)}"
+    assert len(results) <= 4, (
+        f"Expected at most 4 results with default k, got {len(results)}"
+    )
 
 
 def test_search_distance_is_float_between_0_and_1():
@@ -134,11 +138,14 @@ def test_empty_db_no_crash():
     """Running search before any records are indexed should not crash."""
     # Clear any previously indexed records
     from backend.rag import clear_collection
+
     clear_collection()
 
     results = search("anything", k=4)
     # With no records indexed, search should return empty list
-    assert results == [], f"Expected empty list when DB is not initialised, got {results}"
+    assert results == [], (
+        f"Expected empty list when DB is not initialised, got {results}"
+    )
 
 
 def test_record_has_required_fields():

@@ -32,7 +32,9 @@ class DarGlobalExtractor:
         return " ".join(text.split())
 
     @staticmethod
-    def _extract_text(selector: Union[Tag, None], default: Optional[str] = None) -> Optional[str]:
+    def _extract_text(
+        selector: Union[Tag, None], default: Optional[str] = None
+    ) -> Optional[str]:
         if selector is None:
             return default
         return DarGlobalExtractor._strip(selector.get_text())
@@ -43,14 +45,18 @@ class DarGlobalExtractor:
         return DarGlobalExtractor._strip(h1.get_text()) if h1 else None
 
     @staticmethod
-    def _extract_meta(content_class: str, soup: BeautifulSoup, attribute: str = "content") -> Optional[str]:
+    def _extract_meta(
+        content_class: str, soup: BeautifulSoup, attribute: str = "content"
+    ) -> Optional[str]:
         meta = soup.find("meta", attrs={"class": content_class})
         return meta.get(attribute) if meta else None
 
     # ── Property type detection ────────────────────────────────
 
     @staticmethod
-    def _detect_property_type(url_path: str, title: Optional[str], text: str) -> Optional[str]:
+    def _detect_property_type(
+        url_path: str, title: Optional[str], text: str
+    ) -> Optional[str]:
         text_lower = (title or "") + " " + (text or "").lower()
 
         if re.search(r"penthouse|duplex", text_lower):
@@ -92,7 +98,9 @@ class DarGlobalExtractor:
 
         # Extract price text
         price_text = ""
-        price_tag = self.soup.find(string=re.compile(r"AVAILABLE ON REQUEST|price|SAR|USD|GBP", re.IGNORECASE))
+        price_tag = self.soup.find(
+            string=re.compile(r"AVAILABLE ON REQUEST|price|SAR|USD|GBP", re.IGNORECASE)
+        )
         if price_tag:
             price_text = price_tag
 
@@ -107,7 +115,11 @@ class DarGlobalExtractor:
         description_parts = []
         for p in self.soup.find_all("p"):
             t = self._strip(p.get_text())
-            if t and t not in ("AVAILABLE ON REQUEST", "Discover", "A WORLD OF ONE'S OWN"):
+            if t and t not in (
+                "AVAILABLE ON REQUEST",
+                "Discover",
+                "A WORLD OF ONE'S OWN",
+            ):
                 description_parts.append(t)
         description = " ".join(description_parts) if description_parts else None
 
@@ -115,7 +127,14 @@ class DarGlobalExtractor:
         amenities: List[str] = []
         for span in self.soup.find_all("span"):
             t = self._strip(span.get_text())
-            if t and ("Fendi" in t or "Aston" in t or "Pagani" in t or "Lamborghini" in t or "Fendi Casa" in t or "Aston Martin" in t):
+            if t and (
+                "Fendi" in t
+                or "Aston" in t
+                or "Pagani" in t
+                or "Lamborghini" in t
+                or "Fendi Casa" in t
+                or "Aston Martin" in t
+            ):
                 amenities.append(t)
 
         # Extract developer
@@ -134,7 +153,9 @@ class DarGlobalExtractor:
             title=title or "One-of-One Property",
             description=self._strip(description),
             city=city,
-            property_type=self._detect_property_type(self.path, title, description or ""),
+            property_type=self._detect_property_type(
+                self.path, title, description or ""
+            ),
             bedrooms=bedrooms,
             status=status,
             amenities=amenities if amenities else None,
@@ -149,9 +170,17 @@ class DarGlobalExtractor:
 
         # Extract location/city from breadcrumbs or hero section
         city = None
-        location_tag = self.soup.find(lambda tag: tag.name and "location" in tag.get("class", []).lower() if tag.get("class") else False)
+        location_tag = self.soup.find(
+            lambda tag: (
+                tag.name and "location" in tag.get("class", []).lower()
+                if tag.get("class")
+                else False
+            )
+        )
         if not location_tag:
-            location_tag = self.soup.find("span", string=re.compile(r"[A-Z][a-z]+,\s*[A-Za-z]+", re.IGNORECASE))
+            location_tag = self.soup.find(
+                "span", string=re.compile(r"[A-Z][a-z]+,\s*[A-Za-z]+", re.IGNORECASE)
+            )
         if location_tag:
             city_text = self._strip(location_tag.get_text())
             city = re.search(r"([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)", city_text)
@@ -159,7 +188,9 @@ class DarGlobalExtractor:
 
         # Extract description
         description = None
-        desc_container = self.soup.find("div", class_=lambda c: c and "description" in c.lower() if c else False)
+        desc_container = self.soup.find(
+            "div", class_=lambda c: c and "description" in c.lower() if c else False
+        )
         if desc_container:
             description = self._strip(desc_container.get_text())
         if description is None:
@@ -172,14 +203,18 @@ class DarGlobalExtractor:
 
         # Extract bedrooms
         bedrooms = None
-        br_match = re.search(r"(\d+)\s*bedroom|bedrooms?\s*:?\s*(\d+)", h1_text, re.IGNORECASE)
+        br_match = re.search(
+            r"(\d+)\s*bedroom|bedrooms?\s*:?\s*(\d+)", h1_text, re.IGNORECASE
+        )
         if br_match:
             bedrooms = int(br_match.group(1) or br_match.group(2))
 
         # Extract price
         price = None
         currency = None
-        price_tag = self.soup.find(string=re.compile(r"[\d,]+\s*(SAR|USD|GBP|AED)", re.IGNORECASE))
+        price_tag = self.soup.find(
+            string=re.compile(r"[\d,]+\s*(SAR|USD|GBP|AED)", re.IGNORECASE)
+        )
         if price_tag:
             pm = re.search(r"([\d,]+)\s*(SAR|USD|GBP|AED)", price_tag, re.IGNORECASE)
             if pm:
@@ -188,7 +223,9 @@ class DarGlobalExtractor:
 
         # If no price on page, check for "AVAILABLE ON REQUEST"
         if price is None:
-            if self.soup.find(string=re.compile(r"AVAILABLE ON REQUEST", re.IGNORECASE)):
+            if self.soup.find(
+                string=re.compile(r"AVAILABLE ON REQUEST", re.IGNORECASE)
+            ):
                 price = None
                 currency = None
 
@@ -208,7 +245,11 @@ class DarGlobalExtractor:
 
         # Extract size
         size_sqm = None
-        size_match = re.search(r"(\d+(?:\.\d+)?)\s*[mM]2|(\d+(?:\.\d+)?)\s*sqm", h1_text + " " + (description or ""), re.IGNORECASE)
+        size_match = re.search(
+            r"(\d+(?:\.\d+)?)\s*[mM]2|(\d+(?:\.\d+)?)\s*sqm",
+            h1_text + " " + (description or ""),
+            re.IGNORECASE,
+        )
         if size_match:
             val = size_match.group(1) or size_match.group(2)
             try:
@@ -228,7 +269,9 @@ class DarGlobalExtractor:
 
         # Extract reference number
         reference_number = None
-        ref_tag = self.soup.find(string=re.compile(r"Ref no|Reference|property ref", re.IGNORECASE))
+        ref_tag = self.soup.find(
+            string=re.compile(r"Ref no|Reference|property ref", re.IGNORECASE)
+        )
         if ref_tag:
             ref_match = re.search(r"[#]?(\d+)", self._strip(ref_tag))
             if ref_match:
@@ -247,7 +290,9 @@ class DarGlobalExtractor:
             title=title or "DarGlobal Project",
             description=description,
             city=city,
-            property_type=self._detect_property_type(self.path, title, description or ""),
+            property_type=self._detect_property_type(
+                self.path, title, description or ""
+            ),
             bedrooms=bedrooms,
             price=price,
             currency=currency,
@@ -315,11 +360,24 @@ class DarGlobalExtractor:
             return self.extract_from_one_of_one()
 
         # Project detail pages (AIDA, Trump, branded residences)
-        if any(re.search(pat, path) for pat in [
-            r"/aida", r"/trump", r"/davinci", r"/dg1", r"/marea", r"/rayana",
-            r"/urban-oasis", r"/tierra-viva", r"/neptune", r"/the-astera",
-            r"/la-collina", r"/marriott-residences", r"/fairway-villas",
-        ]):
+        if any(
+            re.search(pat, path)
+            for pat in [
+                r"/aida",
+                r"/trump",
+                r"/davinci",
+                r"/dg1",
+                r"/marea",
+                r"/rayana",
+                r"/urban-oasis",
+                r"/tierra-viva",
+                r"/neptune",
+                r"/the-astera",
+                r"/la-collina",
+                r"/marriott-residences",
+                r"/fairway-villas",
+            ]
+        ):
             return self.extract_from_project_detail()
 
         # Blog posts

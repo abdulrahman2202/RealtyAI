@@ -3,12 +3,11 @@
 No live website requests are made. All data is extracted from fixtures.
 """
 
-import json
 from pathlib import Path
 
 from backend.extractors.darglobal import DarGlobalExtractor
 from backend.extractors.wasalt import WasaltExtractor
-from backend.models import DarGlobalProperty, WasaltProperty, ExtractedRecord
+from backend.models import DarGlobalProperty, ExtractedRecord, WasaltProperty
 
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -21,13 +20,18 @@ def _load_fixture(name: str) -> str:
 
 # ── DarGlobal extractor tests ────────────────────────────────
 
+
 def test_darglobal_top_of_astera_returns_model():
     """Test that Top of the Astera returns a valid DarGlobalProperty model."""
     html = _load_fixture("darglobal_top_of_astera.html")
-    extractor = DarGlobalExtractor(html, "https://darglobal.co.uk/one-of-one/top-of-the-astera")
+    extractor = DarGlobalExtractor(
+        html, "https://darglobal.co.uk/one-of-one/top-of-the-astera"
+    )
     record = extractor.extract()
 
-    assert isinstance(record, DarGlobalProperty), f"Expected DarGlobalProperty, got {type(record)}"
+    assert isinstance(record, DarGlobalProperty), (
+        f"Expected DarGlobalProperty, got {type(record)}"
+    )
     assert record.source == "darglobal.co.uk"
     assert record.url == "https://darglobal.co.uk/one-of-one/top-of-the-astera"
     assert record.title is not None
@@ -37,10 +41,14 @@ def test_darglobal_top_of_astera_returns_model():
 def test_darglobal_trump_penthouse_returns_model():
     """Test that Trump Penthouse one-of-one returns a valid model."""
     html = _load_fixture("darglobal_one_of_one_trump_penthouse.html")
-    extractor = DarGlobalExtractor(html, "https://darglobal.co.uk/one-of-one/trump-penthouse")
+    extractor = DarGlobalExtractor(
+        html, "https://darglobal.co.uk/one-of-one/trump-penthouse"
+    )
     record = extractor.extract()
 
-    assert isinstance(record, DarGlobalProperty), f"Expected DarGlobalProperty, got {type(record)}"
+    assert isinstance(record, DarGlobalProperty), (
+        f"Expected DarGlobalProperty, got {type(record)}"
+    )
     assert record.source == "darglobal.co.uk"
     assert record.title is not None
     assert record.url is not None
@@ -50,7 +58,9 @@ def test_darglobal_trump_penthouse_returns_model():
 def test_darglobal_one_of_one_has_required_fields():
     """Test that one-of-one extraction produces model with expected field types."""
     html = _load_fixture("darglobal_one_of_one_trump_penthouse.html")
-    extractor = DarGlobalExtractor(html, "https://darglobal.co.uk/one-of-one/trump-penthouse")
+    extractor = DarGlobalExtractor(
+        html, "https://darglobal.co.uk/one-of-one/trump-penthouse"
+    )
     record = extractor.extract()
 
     # Fields should be either a value or None (not invented)
@@ -64,7 +74,9 @@ def test_darglobal_one_of_one_has_required_fields():
 def test_darglobal_extractor_handles_one_of_one_url():
     """Test URL-based routing to one-of-one extraction."""
     html = _load_fixture("darglobal_one_of_one_trump_penthouse.html")
-    extractor = DarGlobalExtractor(html, "https://darglobal.co.uk/one-of-one/trump-penthouse")
+    extractor = DarGlobalExtractor(
+        html, "https://darglobal.co.uk/one-of-one/trump-penthouse"
+    )
     record = extractor.extract()
 
     # Should detect it's a one-of-one page
@@ -86,50 +98,74 @@ def test_darglobal_extractor_handles_blog_url():
 
 # ── Wasalt extractor tests ───────────────────────────────────
 
+
 def test_wasalt_detail_returns_model():
     """Test that Wasalt detail page returns a valid WasaltProperty model."""
     html = _load_fixture("wasalt_detail_villa.html")
-    extractor = WasaltExtractor(html, "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799")
+    extractor = WasaltExtractor(
+        html,
+        "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799",
+    )
     record = extractor.extract()
 
-    assert isinstance(record, WasaltProperty), f"Expected WasaltProperty, got {type(record)}"
+    assert isinstance(record, WasaltProperty), (
+        f"Expected WasaltProperty, got {type(record)}"
+    )
     assert record.source == "wasalt.sa"
     assert record.title is not None
-    assert record.url == "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799"
+    assert (
+        record.url
+        == "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799"
+    )
     print("  PASS: test_wasalt_detail_returns_model")
 
 
 def test_wasalt_detail_has_price_and_currency():
     """Test Wasalt detail extraction includes price in SAR."""
     html = _load_fixture("wasalt_detail_villa.html")
-    extractor = WasaltExtractor(html, "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799")
+    extractor = WasaltExtractor(
+        html,
+        "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799",
+    )
     record = extractor.extract()
 
     assert record.currency == "SAR", f"Expected currency SAR, got {record.currency}"
     # Price should be a positive number or None (not invented)
-    assert record.price is None or (isinstance(record.price, (int, float)) and record.price > 0)
+    assert record.price is None or (
+        isinstance(record.price, (int, float)) and record.price > 0
+    )
     print("  PASS: test_wasalt_detail_has_price_and_currency")
 
 
 def test_wasalt_detail_has_bedrooms_and_areas():
     """Test Wasalt detail extraction includes bedrooms and area fields."""
     html = _load_fixture("wasalt_detail_villa.html")
-    extractor = WasaltExtractor(html, "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799")
+    extractor = WasaltExtractor(
+        html,
+        "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799",
+    )
     record = extractor.extract()
 
     # Bedrooms should be int or None
     assert record.bedrooms is None or isinstance(record.bedrooms, int)
     # Land area should be float or None
-    assert record.land_area_sqm is None or isinstance(record.land_area_sqm, (int, float))
+    assert record.land_area_sqm is None or isinstance(
+        record.land_area_sqm, (int, float)
+    )
     # Building area should be float or None
-    assert record.building_area_sqm is None or isinstance(record.building_area_sqm, (int, float))
+    assert record.building_area_sqm is None or isinstance(
+        record.building_area_sqm, (int, float)
+    )
     print("  PASS: test_wasalt_detail_has_bedrooms_and_areas")
 
 
 def test_wasalt_detail_has_location():
     """Test Wasalt detail extraction includes city/country."""
     html = _load_fixture("wasalt_detail_villa.html")
-    extractor = WasaltExtractor(html, "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799")
+    extractor = WasaltExtractor(
+        html,
+        "https://wasalt.sa/en/property/sale/villa-450-sqm-facing-south-on-18m-width-street-5971799",
+    )
     record = extractor.extract()
 
     # City should be string or None (not invented)
@@ -199,6 +235,7 @@ def test_darglobal_model_accepts_valid_data():
 
 # ── Crawler tests ────────────────────────────────────────────
 
+
 def test_crawler_dry_run_mode():
     """Test crawler dry-run mode flag."""
     from backend.crawler import BaseCrawler
@@ -217,7 +254,7 @@ def test_crawler_deduplication():
     crawler = BaseCrawler(dry_run=True)
 
     # Same URL twice - second should be None (skipped)
-    record1 = crawler.crawl_url(
+    crawler.crawl_url(
         "https://darglobal.co.uk/one-of-one/top-of-the-astera",
         extract_darglobal,
         crawler.output_dir_dg,
@@ -239,7 +276,6 @@ def test_crawler_produces_json_output():
 
     crawler = BaseCrawler(dry_run=False)
 
-    html = _load_fixture("darglobal_top_of_astera.html")
     record = crawler.crawl_url(
         "https://darglobal.co.uk/one-of-one/top-of-the-astera",
         extract_darglobal,
@@ -249,6 +285,7 @@ def test_crawler_produces_json_output():
     # In non-dry run mode, check JSON file was created
     import json
     from pathlib import Path
+
     json_files = list(crawler.output_dir_dg.glob("*.json"))
     if json_files:
         # Validate JSON content

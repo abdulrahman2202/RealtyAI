@@ -9,7 +9,12 @@ from pathlib import Path
 from typing import Any, Optional, Dict, List, Type, Union, Callable
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
 
 from backend.models import (
     BaseProperty,
@@ -42,11 +47,15 @@ RETRYABLE_STATUS_CODES = {500, 502, 503, 504, 408, 429}
 
 # ── Retry decorator ──────────────────────────────────────────
 
+
 def _is_retryable(httpx_exc: Any) -> bool:
     """Check if an exception is retryable."""
     if isinstance(httpx_exc, (httpx.TimeoutException, httpx.NetworkError)):
         return True
-    if hasattr(httpx_exc, "status_code") and httpx_exc.status_code in RETRYABLE_STATUS_CODES:
+    if (
+        hasattr(httpx_exc, "status_code")
+        and httpx_exc.status_code in RETRYABLE_STATUS_CODES
+    ):
         return True
     return False
 
@@ -60,6 +69,7 @@ retry_decorator = retry(
 
 
 # ── Core fetcher ─────────────────────────────────────────────
+
 
 class ThrottledClient:
     """HTTP client with per-domain rate limiting."""
@@ -101,6 +111,7 @@ class ThrottledClient:
 
 
 # ── Crawler base ─────────────────────────────────────────────
+
 
 class BaseCrawler:
     """Reusable crawler foundation supporting DarGlobal and Wasalt."""
@@ -156,7 +167,9 @@ class BaseCrawler:
         logger.info(f"Crawling: {url}")
 
         if self.dry_run:
-            logger.info(f"[DRY RUN] Would fetch {url} (skipping live request per test requirements)")
+            logger.info(
+                f"[DRY RUN] Would fetch {url} (skipping live request per test requirements)"
+            )
             # In dry run mode, use the extractor directly with fixture data approach.
             # Since tests provide HTML via extractor_func, we simulate by calling
             # the extractor with a placeholder - the actual test will provide pre-loaded HTML.
@@ -189,7 +202,9 @@ class BaseCrawler:
 
         # Validate with Pydantic model
         if not isinstance(record, BaseProperty):
-            logger.error(f"Extractor did not return BaseProperty subclass, got {type(record)}")
+            logger.error(
+                f"Extractor did not return BaseProperty subclass, got {type(record)}"
+            )
             self.total_errors += 1
             return None
 
@@ -199,11 +214,17 @@ class BaseCrawler:
                 uuid=int(hashlib(url)) % 1000000  # simple hash-based naming
             )
             # Use model_dump for JSON serialization
-            data = record.model_dump(mode="json", exclude={"extracted_at", "source", "url"})
+            data = record.model_dump(
+                mode="json", exclude={"extracted_at", "source", "url"}
+            )
             # Add source and URL back
             data["source"] = record.source
             data["url"] = record.url
-            data["extracted_at"] = record.extracted_at.isoformat() if record.extracted_at else datetime.utcnow().isoformat()
+            data["extracted_at"] = (
+                record.extracted_at.isoformat()
+                if record.extracted_at
+                else datetime.utcnow().isoformat()
+            )
 
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, default=str)
@@ -274,18 +295,22 @@ class BaseCrawler:
 def hashlib_url(url: str) -> int:
     """Simple hash function for generating filenames."""
     import hashlib
-    return int(hashlib.sha256(url.encode()).hexdigest(), 16) % (10 ** 6)
+
+    return int(hashlib.sha256(url.encode()).hexdigest(), 16) % (10**6)
 
 
 # ── Convenience extractor wrappers ──────────────────────────
 
+
 def extract_darglobal(html: str, url: str) -> BaseProperty:
     """Wrapper for DarGlobal extractor."""
     from backend.extractors.darglobal import DarGlobalExtractor
+
     return DarGlobalExtractor(html, url).extract()
 
 
 def extract_wasalt(html: str, url: str) -> BaseProperty:
     """Wrapper for Wasalt extractor."""
     from backend.extractors.wasalt import WasaltExtractor
+
     return WasaltExtractor(html, url).extract()

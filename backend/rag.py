@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-
-from backend.models import DarGlobalProperty, WasaltProperty, ExtractedRecord
 
 import chromadb
 from sentence_transformers import SentenceTransformer
+
+from typing import Any, Optional
+
+from backend.models import DarGlobalProperty, WasaltProperty, ExtractedRecord
 
 
 # ── Module-level singletons (created on first use) ──────────────
@@ -28,10 +29,12 @@ def _get_client() -> chromadb.Client:
     vector_db_dir = Path(__file__).resolve().parent.parent / "data" / "vector_db"
     vector_db_dir.mkdir(parents=True, exist_ok=True)
 
-    _chroma_client = chromadb.Client(chromadb.Settings(
-        persist_directory=str(vector_db_dir),
-        anonymized_telemetry=False,
-    ))
+    _chroma_client = chromadb.Client(
+        chromadb.Settings(
+            persist_directory=str(vector_db_dir),
+            anonymized_telemetry=False,
+        )
+    )
 
     # Create (or reuse) the collection
     _collection = _chroma_client.get_or_create_collection(
@@ -44,7 +47,7 @@ def _get_client() -> chromadb.Client:
     return _chroma_client
 
 
-def index_records(records: List[Dict[str, Any]]) -> None:
+def index_records(records: list[dict[Any, Any]]) -> None:
     """Index a list of property record dicts into ChromaDB.
 
     Each record should have at minimum ``title`` and ``description`` fields,
@@ -55,9 +58,9 @@ def index_records(records: List[Dict[str, Any]]) -> None:
     _ = _get_client()  # ensure initialised
 
     # Normalise and prepare texts for embedding
-    ids: List[str] = []
-    documents: List[str] = []
-    metadatas: List[Dict[str, Any]] = []
+    ids: list[str] = []
+    documents: list[str] = []
+    metadatas: list[dict[str, Any]] = []
 
     for rec in records:
         # Skip records without a title or URL
@@ -84,7 +87,7 @@ def index_records(records: List[Dict[str, Any]]) -> None:
 
         # Store metadata including source, url, title, and description.
         # ChromaDB 1.5.9 with embeddings supplied accepts str metadata values.
-        metadata: Dict[str, Any] = {
+        metadata: dict[str, Any] = {
             "source": rec.get("source", ""),
             "url": url,
             "title": norm_title,  # normalised title
@@ -109,7 +112,7 @@ def index_records(records: List[Dict[str, Any]]) -> None:
     )
 
 
-def search(query: str, k: int = 4) -> List[Dict[str, Any]]:
+def search(query: str, k: int = 4) -> list[dict[str, Any]]:
     """Search the vector store for the top-k most similar property records.
 
     Args:
@@ -139,7 +142,7 @@ def search(query: str, k: int = 4) -> List[Dict[str, Any]]:
     )
 
     # Format results
-    formatted: List[Dict[str, Any]] = []
+    formatted: list[dict[str, Any]] = []
     documents = results.get("documents", [[]])[0]
     metadatas = results.get("metadatas", [[]])[0]
     ids = results.get("ids", [[]])[0]
@@ -150,12 +153,14 @@ def search(query: str, k: int = 4) -> List[Dict[str, Any]]:
         dist = distances[i] if i < len(distances) else 1.0
         # ChromaDB cosine distance ranges [0, 2]; normalise to [0,1] for consistency
         norm_dist = float(dist) / 2.0 if float(dist) > 1.0 else float(dist)
-        formatted.append({
-            "id": ids[i] if i < len(ids) else None,
-            "document": documents[i] if i < len(documents) else "",
-            "metadata": meta,
-            "distance": norm_dist,
-        })
+        formatted.append(
+            {
+                "id": ids[i] if i < len(ids) else None,
+                "document": documents[i] if i < len(documents) else "",
+                "metadata": meta,
+                "distance": norm_dist,
+            }
+        )
 
     return formatted
 
@@ -171,7 +176,7 @@ def clear_collection() -> None:
             _client = _chroma_client
             if _client is not None:
                 _client.delete_collection(name=_collection.name)
-        except Exception:
+        except (chromadb.errors.NotFoundError, chromadb.errors.ChromaError):
             pass
     _collection = None
     _chroma_client = None
@@ -181,23 +186,25 @@ def clear_collection() -> None:
     _get_client()
 
 
-def get_all_records() -> List[Dict[str, Any]]:
+def get_all_records() -> list[dict[str, Any]]:
     """Retrieve all indexed property records from the vector store."""
     _ = _get_client()  # ensure initialised
 
     results = _collection.get()
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
 
     ids = results.get("ids", [])
     metadatas = results.get("metadatas", [])
     documents = results.get("documents", [])
 
     for i in range(len(ids)):
-        records.append({
-            "id": ids[i] if i < len(ids) else None,
-            "document": documents[i] if i < len(documents) else "",
-            "metadata": metadatas[i] if i < len(metadatas) else {},
-        })
+        records.append(
+            {
+                "id": ids[i] if i < len(ids) else None,
+                "document": documents[i] if i < len(documents) else "",
+                "metadata": metadatas[i] if i < len(metadatas) else {},
+            }
+        )
 
     return records
 
@@ -208,16 +215,18 @@ def init_from_processed_data() -> None:
     This is the convenience entry-point used by the test suite and
     any initialization script.
     """
-    processed_dir = Path(__file__).resolve().parent.parent / "data" / "processed" / "darglobal"
+    processed_dir = (
+        Path(__file__).resolve().parent.parent / "data" / "processed" / "darglobal"
+    )
 
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
 
     if processed_dir.is_dir():
         for json_file in sorted(processed_dir.glob("*.json")):
             try:
                 data = json.loads(json_file.read_text(encoding="utf-8"))
                 records.append(data)
-            except Exception:
+            except (json.JSONDecodeError, UnicodeDecodeError):
                 # Skip malformed JSON; do not block initialization
                 continue
 
