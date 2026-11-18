@@ -1,0 +1,96 @@
+{
+  "source": "darglobal.co.uk",
+  "total_raw_records": 4,
+  "unique_records": 2,
+  "duplicate_records": 2,
+  "missing_field_counts": {
+    "property_type": 2,
+    "currency": 2,
+    "facilities": 2,
+    "extracted_at": 0,
+    "city": 2,
+    "source": 0,
+    "amenities": 2,
+    "country": 2,
+    "developer": 0,
+    "title": 0,
+    "price": 2,
+    "bedrooms": 2,
+    "status": 0,
+    "reference_number": 2,
+    "availability": 0,
+    "description": 0,
+    "url": 0
+  },
+  "field_coverage": {
+    "property_type": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "currency": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "facilities": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "extracted_at": {
+      "count": 2,
+      "percentage": 100.0
+    },
+    "city": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "source": {
+      "count": 2,
+      "percentage": 100.0
+    },
+    "amenities": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "country": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "developer": {
+      "count": 2,
+      "percentage": 100.0
+    },
+    "title": {
+      "count": 2,
+      "percentage": 100.0
+    },
+    "price": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "bedrooms": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "status": {
+      "count": 2,
+      "percentage": 100.0
+    },
+    "reference_number": {
+      "count": 0,
+      "percentage": 0.0
+    },
+    "availability": {
+      "count": 2,
+      "percentage": 100.0
+    },
+    "description": {
+      "count": 2,
+      "percentage": 100.0
+    },
+    "url": {
+      "count": 2,
+      "percentage": 100.0
+    }
+  },
+  "output_files": 2
+}

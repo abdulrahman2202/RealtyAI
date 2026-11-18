@@ -1,0 +1,50 @@
+# Python environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# pytest cache
+.pytest_cache/
+pytest_cache/
+
+# Ruff cache
+.ruff_cache/
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# Environment variables and secrets
+.env
+
+# ChromaDB vector store (persistent vector database)
+data/vector_db/
+
+# Debug / temporary files (created during development)
+*.tmp
+*.temp
+debug_*.py
+debug_*.txt
+
+# Generated / intermediate files
+.hypothesis/
+.tox/
+.coverage
+cover/
+htmlcov/
+
+# OS and IDE temporary files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Project-specific generated files
+data/vector_db/**
