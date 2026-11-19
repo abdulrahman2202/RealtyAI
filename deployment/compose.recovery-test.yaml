@@ -1,0 +1,57 @@
+# Local TLS fixture only. Never deploy this override or its certificates to hosting.
+services:
+  backend:
+    image: realtyai-backend:optionb
+    environment:
+      REALTYAI_SNAPSHOT_ENDPOINT: https://snapshot-test.vercel.app:8443/api/internal/chroma-snapshot
+      REALTYAI_SNAPSHOT_CLIENT_TOKEN: ${FIXTURE_CLIENT_TOKEN:?Local fixture credential required}
+      REALTYAI_SNAPSHOT_BLOB_URL: https://fixture.private.blob.vercel-storage.com:8443/${FIXTURE_ARCHIVE_NAME:?Archive required}
+      REALTYAI_SNAPSHOT_SHA256: ${FIXTURE_ARCHIVE_SHA256:?Archive digest required}
+      REALTYAI_SNAPSHOT_MANIFEST_SHA256: ${FIXTURE_MANIFEST_SHA256:?Manifest digest required}
+      SSL_CERT_FILE: /fixture/test-ca-bundle.pem
+    volumes: !override
+      - type: bind
+        source: ${FIXTURE_RUNTIME_PATH:?An empty disposable runtime directory is required}
+        target: /var/lib/realtyai
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${FIXTURE_DIRECTORY:?Fixture directory required}
+        target: /fixture
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      snapshot-fixture:
+        condition: service_healthy
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.1
+    healthcheck:
+      start_period: 180s
+  frontend:
+    image: realtyai-frontend:optionb
+  snapshot-fixture:
+    image: realtyai-backend:optionb
+    entrypoint: [python, /fixture/server.py]
+    environment:
+      FIXTURE_CLIENT_TOKEN: ${FIXTURE_CLIENT_TOKEN:?Local fixture credential required}
+      FIXTURE_ARCHIVE_SHA256: ${FIXTURE_ARCHIVE_SHA256:?Archive digest required}
+    volumes:
+      - type: bind
+        source: ${FIXTURE_DIRECTORY:?Fixture directory required}
+        target: /fixture
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      default:
+        aliases: [snapshot-test.vercel.app, fixture.private.blob.vercel-storage.com]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import os,ssl,urllib.request; urllib.request.urlopen(urllib.request.Request('https://snapshot-test.vercel.app:8443/api/internal/chroma-snapshot',headers={'Authorization':'Bearer '+os.environ['FIXTURE_CLIENT_TOKEN']}),context=ssl.create_default_context(cafile='/fixture/test-cert.pem'),timeout=5).read()"]
+      interval: 5s
+      timeout: 6s
+      retries: 12

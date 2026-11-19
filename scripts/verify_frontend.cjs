@@ -12,17 +12,17 @@ const questions = [
   const browser = await chromium.launch({ headless: true });
   const results = [];
   const errors = [];
-  const output = path.resolve('data/import_review/phase6112_frontend_verification.json');
+  const output = path.resolve(process.env.REALTYAI_VERIFY_OUTPUT || 'data/import_review/phase6112_frontend_verification.json');
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto('http://localhost:3000');
+    await page.goto(process.env.REALTYAI_VERIFY_URL || 'http://localhost:3000');
     for (let index = 0; index < questions.length; index++) {
       const question = questions[index];
       await page.getByRole('button', { name: 'New conversation', exact: true }).first().click();
       const request = page.waitForResponse(response => response.url().endsWith('/api/chat')
         && response.request().method() === 'POST'
-        && response.request().postDataJSON().question === question, { timeout: 120000 });
+        && response.request().postDataJSON().question === question, { timeout: 240000 });
       await page.getByRole('textbox', { name: 'Ask a property question' }).fill(question);
       await page.getByRole('button', { name: 'Send message', exact: true }).click();
       const response = await request;
@@ -52,7 +52,8 @@ const questions = [
       fs.writeFileSync(output, JSON.stringify({ questions: results, browser_errors: errors }, null, 2));
       console.log(JSON.stringify({ question, correctCitations, useful, displayedCharacters: displayed.length }));
       if (index === 0 || index === 1) {
-        await page.screenshot({ path: path.resolve('.tmp/phase6112/frontend-' + index + '.png'), fullPage: true });
+        const screenshotDirectory = process.env.REALTYAI_VERIFY_SCREENSHOTS || '.tmp/phase6112';
+        await page.screenshot({ path: path.resolve(screenshotDirectory, 'frontend-' + index + '.png'), fullPage: true });
       }
     }
     if (errors.length) throw new Error('Browser errors: ' + errors.join('; '));

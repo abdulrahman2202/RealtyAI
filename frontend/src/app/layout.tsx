@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import SidebarProvider from "@/components/SidebarProvider";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const inter = localFont({
+  src: "../fonts/inter-latin.woff2",
+  variable: "--font-sans",
+  weight: "100 900",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "RealtyAI — Real Estate Intelligence",

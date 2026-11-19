@@ -1,0 +1,46 @@
+# Manual deployment template. Private Vercel Blob supplies the fixed database snapshot.
+# Remains unapplied. Use Render Free only, with non-chargeable account settings.
+# Use an image-backed service so no Git commands are needed for deployment.
+services:
+  - type: web
+    name: realtyai-backend
+    runtime: image
+    plan: free
+    image:
+      url: docker.io/replace-with-your-namespace/realtyai-backend:optionb
+    healthCheckPath: /ready
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: CORS_ORIGINS
+        sync: false
+      - key: REALTYAI_VECTOR_DB_DIR
+        value: /var/lib/realtyai/chroma
+      - key: REALTYAI_COLLECTION_NAME
+        value: realtyai_multisource_v1
+      - key: REALTYAI_COLLECTION_ID
+        value: 51cdb05c-3ee9-4b04-b85c-71cbf168ff0d
+      - key: REALTYAI_SNAPSHOT_ENDPOINT
+        sync: false
+      - key: REALTYAI_SNAPSHOT_CLIENT_TOKEN
+        sync: false
+      - key: REALTYAI_SNAPSHOT_BLOB_URL
+        sync: false
+      - key: REALTYAI_SNAPSHOT_SHA256
+        value: 63ffdfe00886556eb5af27ab0a8a8ac74c54f061e3eb1a50717a9360e9bd4fa5
+      - key: REALTYAI_SNAPSHOT_MANIFEST_SHA256
+        value: a0189b6db2432cfdd43edfccb821250302fb7457ba73b7686422e64104c77ffc
+      - key: HF_HUB_CACHE
+        value: /opt/models/hub
+      - key: HF_HUB_OFFLINE
+        value: "1"
+      - key: TRANSFORMERS_OFFLINE
+        value: "1"
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: MKL_NUM_THREADS
+        value: "1"

@@ -1,0 +1,56 @@
+name: realtyai
+services:
+  backend:
+    image: realtyai-backend:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY:?GROQ_API_KEY must be provided at runtime}
+      GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:13000,http://127.0.0.1:13000}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-18000}:8000"
+    volumes:
+      - type: bind
+        source: ${REALTYAI_DB_HOST_PATH:-./data/vector_db_multisource}
+        target: /var/lib/realtyai/chroma
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    mem_limit: ${BACKEND_MEMORY_LIMIT:-1g}
+    cpus: ${BACKEND_CPU_LIMIT:-1.0}
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+  frontend:
+    image: realtyai-frontend:local
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:18000}
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-13000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"

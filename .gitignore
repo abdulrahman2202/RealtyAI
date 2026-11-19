@@ -50,3 +50,8 @@ htmlcov/
 # Project-specific generated files
 data/vector_db/**
 data/vector_db_multisource/
+.tmp/
+deployment/local.env
+deployment/recovery.local.env
+deployment/model-cache/
+deployment/backups/

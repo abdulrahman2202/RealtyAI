@@ -36,6 +36,8 @@ def protect_persistent_data(monkeypatch, tmp_path):
     monkeypatch.setattr(chromadb, "PersistentClient", blocked)
     monkeypatch.setattr(llm, "get_client", blocked)
     monkeypatch.setenv("REALTYAI_VECTOR_DB_DIR", str(tmp_path / "absent_vector_db"))
+    monkeypatch.setenv("REALTYAI_COLLECTION_NAME", rag.COLLECTION_NAME)
+    monkeypatch.delenv("REALTYAI_COLLECTION_ID", raising=False)
     monkeypatch.setenv("HF_HUB_OFFLINE", "1")
     monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
     monkeypatch.setattr(rag, "_collection", None)

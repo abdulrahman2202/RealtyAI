@@ -64,7 +64,7 @@ export async function sendChat(question: string): Promise<ChatResponse> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
-      signal: AbortSignal.timeout(120000),
+      signal: AbortSignal.timeout(240000),
     });
   } catch (error) {
     if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {

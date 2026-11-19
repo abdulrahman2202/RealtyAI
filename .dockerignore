@@ -1,0 +1,11 @@
+**
+!backend/
+!backend/**
+!requirements-runtime.txt
+!deployment/
+!deployment/model-cache/
+!deployment/model-cache/hub/
+!deployment/model-cache/hub/**
+**/__pycache__/**
+**/*.pyc
+**/.env*
