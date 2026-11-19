@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.llm import generate
-from backend.rag import search
+from backend.rag import get_all_records, init_from_processed_data, search
 
 SYSTEM_PROMPT = """\
 You are a helpful real-estate assistant for RealtyAI.
@@ -63,6 +63,10 @@ def chatbot(question: str) -> dict[str, Any]:
         - ``sources``: list of {title, url} dicts for retrieved records
         - ``records``: the raw retrieved records
     """
+    # Auto-initialize the vector database from processed data if empty.
+    if not get_all_records():
+        init_from_processed_data()
+
     records = search(question, k=4)
     context = format_context(records)
 

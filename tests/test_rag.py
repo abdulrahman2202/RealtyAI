@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.rag import init_from_processed_data, search, get_all_records
+from backend.rag import get_all_records, init_from_processed_data, search
 
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -22,6 +22,45 @@ PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed" / "darglobal
 
 def _load_json(name: str) -> dict:
     return json.loads((PROCESSED_DIR / name).read_text(encoding="utf-8"))
+
+
+# ── Fixtures ───────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def isolated_rag_db(tmp_path, monkeypatch):
+    """Provide an isolated ChromaDB instance backed by a temporary directory.
+
+    Ensures tests that call clear_collection() cannot erase the real
+    development database at data/vector_db/.
+    """
+    from chromadb.api.shared_system_client import SharedSystemClient
+
+    from backend import rag
+
+    temp_db_dir = tmp_path / "vector_db"
+    temp_db_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("REALTYAI_VECTOR_DB_DIR", str(temp_db_dir))
+
+    # Clear ChromaDB's shared system registry so a client can be created
+    # with different settings (temporary directory) instead of colliding
+    # with the existing client pointed at the real database.
+    SharedSystemClient._identifier_to_system.clear()
+
+    # Reset module-level singletons so _get_client() creates a fresh client
+    # pointed at the temporary directory.
+    rag._chroma_client = None
+    rag._collection = None
+    rag._encoder = None
+
+    yield
+
+    # Restore: clear registry and reset singletons so subsequent tests
+    # create clients pointing to the real database path.
+    SharedSystemClient._identifier_to_system.clear()
+    rag._chroma_client = None
+    rag._collection = None
+    rag._encoder = None
 
 
 # ── Tests ────────────────────────────────────────────────────────
@@ -134,9 +173,9 @@ def test_search_distance_is_float_between_0_and_1():
     assert 0.0 <= float(dist) <= 1.0, f"Distance should be in [0,1], got {dist}"
 
 
-def test_empty_db_no_crash():
+def test_empty_db_no_crash(isolated_rag_db):
     """Running search before any records are indexed should not crash."""
-    # Clear any previously indexed records
+    # Clear any previously indexed records in the isolated database.
     from backend.rag import clear_collection
 
     clear_collection()

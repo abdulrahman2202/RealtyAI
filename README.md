@@ -248,8 +248,6 @@ All 15 tests pass using local HTML fixtures with no live website requests.
 - **Validation transparency**: Full report generated with field coverage metrics
 
 ## RAG Foundation (Phase 3)
-
-### Overview
 This phase adds Retrieval-Augmented Generation (RAG) capabilities to the RealtyAI foundation, enabling semantic property question answering using ChromaDB and Sentence Transformers.
 
 ### Architecture
@@ -300,3 +298,65 @@ python -c "from backend.rag import ChromaVectorStore; store = ChromaVectorStore.
 
 ### Phase 1 (Crawler Foundation)
 ...
+
+## Phase 5: FastAPI Backend Development
+
+### Overview
+
+Phase 5 adds a clean, modular FastAPI backend that exposes the existing
+RealtyAI RAG + Groq AI agent through REST APIs.
+
+### Application Structure
+
+| File | Purpose |
+|------|---------|
+| `backend/main.py` | FastAPI application initialization, CORS, health endpoint |
+| `backend/api/routes.py` | API endpoints (POST /api/chat) |
+| `backend/schemas.py` | Pydantic request/response schemas |
+| `backend/__init__.py` | Backend package marker |
+| `backend/api/__init__.py` | API subpackage marker |
+| `tests/test_api.py` | Automated API tests (chatbot mocked) |
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Application status (no LLM call) |
+| `/api/chat` | POST | Ask a property-related question (RAG + Groq) |
+| `/docs` | GET | Swagger UI (auto-generated) |
+
+### Run the Backend
+
+From the project root:
+
+```powershell
+python -m uvicorn backend.main:app --reload
+```
+
+Then open `http://localhost:8000/docs` for Swagger UI.
+
+### Manual Endpoint Tests
+
+**Health:**
+```powershell
+curl http://localhost:8000/health
+```
+
+**Chat:**
+```powershell
+curl -X POST http://localhost:8000/api/chat ^
+  -H "Content-Type: application/json" ^
+  -d "{\"question\": \"Tell me about Albert Hall Mansions.\"}"
+```
+
+### Verification
+
+```powershell
+C:\Programming\RealtyAI\.venv\Scripts\python.exe -m pytest tests/ -v
+C:\Programming\RealtyAI\.venv\Scripts\python.exe -m ruff check .
+C:\Programming\RealtyAI\.venv\Scripts\python.exe -m ruff format --check .
+```
+
+### Dependencies Added
+
+- `fastapi==0.115.0` (uvicorn was already present)

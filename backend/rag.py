@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import chromadb
@@ -25,15 +26,19 @@ def _get_client() -> chromadb.Client:
     if _chroma_client is not None:
         return _chroma_client
 
-    # Persist under the project data/vector_db directory
-    vector_db_dir = Path(__file__).resolve().parent.parent / "data" / "vector_db"
+    # Allow overriding the vector DB directory via environment variable
+    # (useful for test isolation without affecting the development database).
+    env_db_dir = os.getenv("REALTYAI_VECTOR_DB_DIR")
+    if env_db_dir:
+        vector_db_dir = Path(env_db_dir)
+    else:
+        # Persist under the project data/vector_db directory
+        vector_db_dir = Path(__file__).resolve().parent.parent / "data" / "vector_db"
     vector_db_dir.mkdir(parents=True, exist_ok=True)
 
-    _chroma_client = chromadb.Client(
-        chromadb.Settings(
-            persist_directory=str(vector_db_dir),
-            anonymized_telemetry=False,
-        )
+    _chroma_client = chromadb.PersistentClient(
+        path=str(vector_db_dir),
+        settings=chromadb.Settings(anonymized_telemetry=False),
     )
 
     # Create (or reuse) the collection
@@ -171,11 +176,12 @@ def clear_collection() -> None:
     Useful for test isolation or starting fresh.
     """
     global _collection, _chroma_client, _encoder
+    # Ensure a client exists so we can delete the collection even in a fresh
+    # process where the module-level singletons are still None.
+    _ = _get_client()
     if _collection is not None:
         try:
-            _client = _chroma_client
-            if _client is not None:
-                _client.delete_collection(name=_collection.name)
+            _chroma_client.delete_collection(name=_collection.name)
         except (chromadb.errors.NotFoundError, chromadb.errors.ChromaError):
             pass
     _collection = None

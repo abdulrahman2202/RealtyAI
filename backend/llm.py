@@ -17,12 +17,42 @@ GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 _client: OpenAI | None = None
 
 
+class LLMError(Exception):
+    """Base exception for LLM (Groq) failures."""
+
+    status_code: int = 500
+
+
+class LLMConfigError(LLMError):
+    """Raised when LLM configuration is missing or invalid."""
+
+    status_code: int = 500
+
+
+class LLMRateLimitError(LLMError):
+    """Raised when the Groq API rate limit is exceeded."""
+
+    status_code: int = 429
+
+
+class LLMConnectionError(LLMError):
+    """Raised when the Groq API cannot be reached."""
+
+    status_code: int = 502
+
+
+class LLMTimeoutError(LLMError):
+    """Raised when the Groq API request times out."""
+
+    status_code: int = 504
+
+
 def get_client() -> OpenAI:
     """Lazily initialise and return the Groq-backed OpenAI client."""
     global _client
     if _client is None:
         if not GROQ_API_KEY:
-            raise RuntimeError("GROQ_API_KEY is not set in the environment")
+            raise LLMConfigError("GROQ_API_KEY is not set in the environment")
         _client = OpenAI(
             api_key=GROQ_API_KEY,
             base_url=GROQ_BASE_URL,
@@ -53,14 +83,16 @@ def generate(
         )
         return response.choices[0].message.content or ""
     except RateLimitError as error:
-        raise RuntimeError(f"Groq rate limit exceeded: {error}") from error
+        raise LLMRateLimitError(f"Groq rate limit exceeded: {error}") from error
     except APIConnectionError as error:
-        raise RuntimeError(f"Groq connection error: {error}") from error
+        raise LLMConnectionError(f"Groq connection error: {error}") from error
     except APIError as error:
-        raise RuntimeError(
+        raise LLMError(
             f"Groq API error (status {error.status_code}): {error.message}"
         ) from error
+    except TimeoutError as error:
+        raise LLMTimeoutError(f"Groq request timed out: {error}") from error
     except Exception as error:
-        raise RuntimeError(
+        raise LLMError(
             f"Unexpected Groq error: {type(error).__name__}: {error}"
         ) from error
