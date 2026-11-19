@@ -1,0 +1,25 @@
+{
+  "verified_at": "2026-11-19T17:12:26.297841+00:00",
+  "status": "passed",
+  "collection_name": "realtyai_multisource_v1",
+  "collection_id": "51cdb05c-3ee9-4b04-b85c-71cbf168ff0d",
+  "chunk_count": 84,
+  "source_counts": {
+    "darglobal": 46,
+    "wasalt": 38
+  },
+  "searchable_documents": 12,
+  "legacy_collection_id": "2de231c0-8e11-41b7-9962-4e3a24ad4be7",
+  "legacy_record_count": 2,
+  "legacy_all_file_hashes_sizes_mtimes_unchanged": true,
+  "protected_existing_files_checked": 108,
+  "unexpected_existing_file_changes": [],
+  "groq_and_other_existing_environment_values_unchanged": true,
+  "cleanup_deleted_files": 26,
+  "all_cleanup_paths_absent": true,
+  "frontend_questions_passed": 2,
+  "browser_errors": 0,
+  "backend_health_http_status": 200,
+  "frontend_http_status": 200,
+  "mandatory_reports_and_application_data_preserved": true
+}

@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "configured_database": "data/vector_db_multisource",
+  "configured_collection": "realtyai_multisource_v1",
+  "resolved_collection": "realtyai_multisource_v1",
+  "resolved_collection_id": "51cdb05c-3ee9-4b04-b85c-71cbf168ff0d",
+  "chunk_count": 84,
+  "groq_and_existing_environment_values_unchanged": true,
+  "entry_point": "backend.main:app"
+}

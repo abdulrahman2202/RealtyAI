@@ -1,0 +1,147 @@
+{
+  "import_metadata": {
+    "total_csv_files": 10,
+    "total_records_read": 10,
+    "total_skipped_empty": 2,
+    "total_skipped_duplicate": 1,
+    "generated_at": "2026-11-19 18:55:33",
+    "schema_audit_phase": "6.10.2",
+    "schema_audit_input": "saved_review_output",
+    "schema_audit_tests": "not_run_per_instruction",
+    "schema_audited_at": "2026-11-19T13:39:34.092641Z",
+    "total_output_records": 7,
+    "classification_counts": {
+      "legal_reference": 0,
+      "project_directory": 1,
+      "company": 4,
+      "individual_property": 2,
+      "unknown": 0,
+      "empty": 0
+    }
+  },
+  "records": [
+    {
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/about",
+      "data": {
+        "title": "About Us",
+        "page_type": "company",
+        "description": "",
+        "content": "DISCOVER DARGLOBAL\n\nLIVE ALL IN\n\nDarGlobal develops real estate that speaks for itself, where lifestyle and value come together. We work with trusted global partners to create homes, communities, and destinations that grow in meaning and worth over time. Our approach is simple: deliver with integrity, design with care, and build with purpose. For those who see the world as their home, DarGlobal offers not just investment, but belonging - value you can measure, and pride you can feel, and a legacy you can pass forward.\n\nZIAD EL CHAAR\n\nFounder & Chief Executive Officer\n\nThe end result that we want to deliver to you is simple: happiness.\n\nGlobal presence\n\nGlobal offices\n\nSalses Offices9\n\nCity project\n\nOur project11\n\nPROUDLY LISTED ON THE LONDON STOCK EXCHANGE\n\nWHERE AMBITION LIVES.\n\nOur premium properties are strategically located in established and emerging markets. Creating opportunities to expand your world. While growing your wealth. Our international portfolio spans exquisite residences, vacation retreats, world-class hospitality, and developments with iconic luxury brands, including Aston Martin, and Lamborghini. Design. Lifestyle. Investment value. Every DarGlobal property seeks to enrich all three.\n\nYOUR WORLD. YOUR WAY.\n\nTrue global citizens want to live without borders. Or compromises. We offer thoughtfully designed homes in desirable settings that cater to your international way of life. Freedom and flexibility. Comfort and culture. Security and service. Wherever you go, find the fundamentals here.\n\nBUILT ON TRUST.\n\nWe draw on over 31 years of luxury development experience to move with agility. Adapting to stay ahead of the market. Anticipating investors’ needs. Leveraging exceptional talent and partnerships. Always guided by purpose. Our commitment to quality and people-first thinking sets us apart. We don’t just build differently. We’re built different.\n\nINVESTOR RELATIONS\n\nfind your next investment\n\nfind your next investment\n\nBOOK NOWget in touch\n\n."
+      },
+      "extracted_at": "2026-11-19T13:25:33.655735Z"
+    },
+    {
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/get-in-touch",
+      "data": {
+        "title": "Contact | Luxury Real Estate, DarGlobal",
+        "page_type": "company",
+        "description": "Contact DarGlobal today to explore luxury real estate opportunities across prime locations. Discover exclusive projects in the UK and beyond with our dedicated team.",
+        "content": "contact us\n\nour offices\n\nLONDON, UK\n\n50 Hans Crescent, Knightsbridge, London, SW1X 0NA, United Kingdom\n\nT +44 20 8156 5353\n\nMARBELLA, SPAIN\n\nGolden Mile, Bulevar Príncipe Alfonso de Hohenlohe, Marbella 29602, Málaga, Spain\n\nT +34 952 687 680\n\nDUBAI, UAE\n\n30th Floor, Jumeirah Emirates Towers, Sheikh Zayed Road. Dubai, United Arab Emirates\n\n35th Floor, Media One Tower, Dubai, United Arab Emirates,\n\nT +971 4 247 8999\n\nT +971 4 247 8999\n\nDOHA, QATAR\n\nMalibu Building, Lusail Entertainment City, Doha, Qatar\n\nT +974 800 3536\n\nMUSCAT, OMAN\n\nRoyal Opera House Muscat Shatti Al Qurum, Muscat, Oman\n\nT +968 2270 2771\n\nRIYADH, KSA\n\n2135 Tahlia St., Al Olaya 12222 Riyadh\n\nT +966 800 118 8081\n\nJEDDAH, KSA\n\nAsh Shati, 23613 King Abdulaziz Road, Jeddah\n\nT +966 800 118 8081\n\nNEW YORK CITY, USA\n\n19th floor - Trump Tower - 725 5th Ave, New York, NY 10022, USA\n\nT +1 212 715 1067\n\nATHENS, GREECE\n\nComing Soon\n\ndivision contacts\n\nCustomer Support\n\n+971 45629666crm@darglobal.co.uk\n\nMARKETING\n\n+971 4 247 8999 Marketing@darglobal.co.uk\n\nInvestor Relations\n\n+971 4 247 8999Ir@darglobal.co.uk\n\nhuman resources\n\n+971 4 247 8999Hr@darglobal.co.uk\n\nGCC MEDIA\n\n+971 4 247 8999 Reem.tajer@bursonglobal.com\n\nUK & European media\n\n+44 20 7466 5000darglobal@buchanancomms.co.uk\n\nAgents\n\n+971 4 247 8999Agents@darglobal.co.uk\n\nGet in touch\n\nWe are glad to help\n\n."
+      },
+      "extracted_at": "2026-11-19T13:25:33.655735Z"
+    },
+    {
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/?utm_source=chatgpt.com",
+      "data": {
+        "title": "DarGlobal | International Luxury Real Estate Developer",
+        "page_type": "company",
+        "description": "DarGlobal is a premier international luxury real estate investment and development platform specialising in architecturally distinctive, design-led residences in the world's most sought-after destinations.",
+        "content": "DarGlobal is a premier international luxury real estate investment and development platform specialising in architecturally distinctive, design-led residences in the world's most sought-after destinations. Listed on the London Stock Exchange, we connect global capital with curated luxury living and property investment opportunities across the UAE, Saudi Arabia, Qatar, Spain, and beyond.\n\nOur elite portfolio spans masterplanned communities, branded luxury apartments, and hospitality-led destinations developed in partnership with iconic names from automotive, fashion, and hospitality. Whether investors seek recurring rental income, long-term capital appreciation, or geographic diversification, DarGlobal structures high-value real estate assets to align perfectly with institutional risk and return objectives.\n\nWith a seasoned leadership team, robust corporate governance, and a differentiated lifestyle brand, DarGlobal offers unparalleled access to exclusive projects that blend world-class architecture, resilient market fundamentals, and enduring desirability for global property buyers."
+      },
+      "extracted_at": "2026-11-19T13:25:33.655735Z"
+    },
+    {
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/partners/the-trump-organization",
+      "data": {
+        "title": "Trump Branded Residences Gulf | DarGlobal Portfolio",
+        "page_type": "company",
+        "description": "Explore DarGlobal's Trump-branded portfolio across Dubai, Jeddah, and Muscat, from Trump Tower Jeddah to Trump International Hotel. Register interest.",
+        "content": "LUXURY. LEGACY. LOCATION.\n\nThe Trump Organization partnered with DarGlobal across a portfolio spanning Dubai, Jeddah, and Muscat, from the Trump Penthouses to Trump Tower Jeddah. This landmark collaboration marks a shared pursuit of superlative design paired with premium locations across the Gulf.\n\nTwo names. Built on scale and reach. The result? Exclusive residences enriched with considered amenities and name-brand prestige, wherever the address. It's more than a portfolio, it's a signature on the skyline. It's presence, everywhere it lands."
+      },
+      "extracted_at": "2026-11-19T13:25:33.655735Z"
+    },
+    {
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/projects/properties-in-uk?utm_source=chatgpt.com",
+      "data": {
+        "title": "Buy Modern Apartments & Exclusive Villas | International Homes for Sale",
+        "page_type": "project_directory",
+        "description": "Explore & buy modern luxury apartments & exclusive villas worldwide! Find your dream international home today. Invest in a premium cobranded real estate project today!",
+        "content": "find your next investment\n\nType\n\nLocation\n\nDubai, UAE\n\nTrump International Hotel & Tower Dubai\n\nDubai, UAE\n\nD-Villas At Jumeirah Golf Estates\n\nAl Marjan Island, RAK, UAE\n\nThe Astera, Interiors by Aston Martin\n\nDubai, United Arab Emirates\n\nDG1\n\nDubai, United Arab Emirates\n\nDa Vinci Tower, Interiors By Pagani\n\nDubai, United Arab Emirates\n\nUrban Oasis by Missoni\n\nDubai, United Arab Emirates\n\nW Residences\n\nDubai, UAE\n\nThe Pagani Penthouse\n\nAl Marjan Island, RAK, UAE\n\nTop of the Astera\n\nBenahavís, Spain\n\nTierra Viva, Design inspired by Automobili Lamborghini\n\nBenahavís, Spain\n\nPainite Villas Design Inspired by Automobili Lamborghini\n\nCortesin, Spain\n\nMarea, Interiors by Missoni\n\nDoha, Qatar\n\nLes Vagues by Elie Saab\n\nSimaisma, Qatar\n\nTrump International Simaisma, Qatar\n\nMuscat, Oman\n\nTrump International Hotel, Oman\n\nMuscat, Oman\n\nTrump Cliff Villas\n\nMuscat, Oman\n\nTrump Golf Villas\n\nMuscat, Oman\n\nAida\n\nAida, Oman\n\nFairway Villas\n\nAIDA | Oman\n\nAzure Oceanfront Villas Interiors by Fendi Casa\n\nAIDA, Muscat, Oman\n\nAmour Sans Detour\n\nAida, Oman\n\nThe Great Escape\n\nAida, Oman\n\nThe Great Escape 2\n\nMuscat, Oman\n\nCoastal Investment Villas\n\nAIDA, Muscat, Oman\n\nSunrise Haven\n\nAida, Oman\n\nMarriott Residences\n\nAIDA, Muscat, Oman\n\nAmour Sans Detour 2\n\nAIDA | Oman\n\nNickelodeon Hotels & Resorts\n\n149 Old Park Lane, London, United Kingdom\n\nThe Mulliner\n\nOverlooking Hyde Park, London, England\n\n7&8 Albert Hall Mansions\n\nAmaya, Jeddah, KSA\n\nTrump Park Residences\n\nRayana, Wadi Safar, Riyadh\n\nTrump Mansions\n\nTrump Branded Residences\n\nAmaya, Jeddah, KSA\n\nTrump Executive Residences\n\nPremium furnished Trump residences\n\nAmaya, Jeddah, KSA\n\nAmaya\n\nLuxury Plots in Amaya, Jeddha\n\nJeddah, KSA\n\nPadel Living Residences\n\nRiyadh, KSA\n\nNeptune, Interiors by Mouawad\n\nJeddah, KSA\n\nTrump Tower Jeddah\n\nWadi Safar, Riyadh, Saudi Arabia\n\nDarGlobal Mansions Interiors by Fendi Casa\n\nRegister Your Interest\n\nDiscover exclusive luxury real estate and investment opportunities with DarGlobal\n\nPlease provide your details to register interest.\n\n."
+      },
+      "extracted_at": "2026-11-19T13:25:33.655735Z"
+    },
+    {
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/the-astera?utm_source=chatgpt.com",
+      "data": {
+        "title": "The Astera, Interiors by Aston Martin | Al Marjan Island RAK",
+        "page_type": "individual_property",
+        "description": "The Astera on Al Marjan Island, RAK combines Aston Martin interiors with direct beach access. 1-3 bed residences and villas. Register interest.",
+        "content": "The Astera, Interiors by Aston Martin\n\nAl Marjan Island| RAK\n\n•\n\nProperty TypeBeach Residences and Villas\n\n•\n\nStatusUnder Development\n\n•\n\nUnits1 to 3-bedroom residences & 3-bedroom beach villas\n\n•\n\nArea (SQFT)682 - 12,277\n\n•\n\nLocationAl Marjan Island, RAK\n\nPhoto Gallery\n\nEach seafront residence is a true work of art. From every angle, you'll witness the obsessive attention to detail that embodies Aston Martin's unwavering dedication to precision and beauty. A true testament to living excellence.\n\nAmenities\n\nCreature Comforts for the Discerning Few\n\nDirect Beach Access\n\nPremium 24/7 Security\n\nFitness Center\n\nSpa\n\nInfinity Pool\n\nSauna\n\nPool Bar\n\nIndoor Cinema\n\nYoga Lawn\n\nMultipurpose Hall\n\nKids play area\n\nWhy Invest\n\nRas Al Khaimah, the fourth-largest emirate in the United Arab Emirates, is home to the newly opened RAK Market, which launched just two years ago. Some of the most desirable areas include Al Marjan Island, Al Hamra Village, and Mina Al Arab. Al Marjan Island's development strategy focuses on attracting a broad spectrum of international investors by offering luxurious amenities, serene ocean views, and a resort-style community. The emphasis on beachfront luxury, combined with the promise of high returns, positions Al Marjan Island as a prime destination for investment in the UAE's real estate market. The government has announced the opening of a WYNN Casino on Al Marjan Island itself in 2.5 years. This announcement has doubled market price over the past two years.\n\n01 10-year Golden Visa: Available with an investment of 2 million AED\n\n02 Attractive Taxation: Enjoy 0% income Tax and 0% Property Tax\n\n03 Direct view of WYNN Resort: Just 5 minutes away from the first Wynn Resort in the Middle East\n\n04 Direct Beachfront Access: Enjoy stunning Beachfront Residences\n\n05 Convenient Location: Only 60 minutes from Dubai International Airport\n\n06 100% Business Ownership: Full ownership of business\n\n07 High-Yield Opportunities: Potential to generate yields beyond 9% due to saturation in Dubai beachfront locations\n\n08 Emerging Market : RAK is experiencing significant growth with an average apartment capital value increase of 35% in the last year\n\n09 High Hotel Occupancy Rates: Projected peak in occupancy rate for the hospitality sector by 2027, nearing full capacity, indicated high demand for residential products\n\n10 Tourist Influx: Projected to attract 3-3.5 million tourists by 2030, driving rental yields and capital values\n\n11 Strong Regulatory Framework: Ensures buyer protection and project completion through RERA and escrow accounts\n\n12 Branded Residences: Achieve higher returns with price premiums of 30% to 200% due to perceived quality, prestige, and superior services, attracting high-net-worth buyers\n\nOther projects\n\nDubai, United Arab Emirates\n\nDG1\n\nDubai, UAE\n\nD-Villas At Jumeirah Golf Estates\n\nAl Marjan Island, RAK, UAE\n\nTop of the Astera\n\nFrequently Asked Questions\n\nThe Astera, Interiors by Aston Martin is a beachfront residential development on Al Marjan Island, Ras Al Khaimah, developed by DarGlobal. Aston Martin's design team applied the brand's precision and craftsmanship to each unit, producing a collection of one- to three-bedroom residences and three-bedroom beach villas directly on the water's edge.\n\nThe Astera offers one-, two-, and three-bedroom residences and three-bedroom beachfront villas ranging from 61 to 265 sqm. All units feature Aston Martin-designed interiors and sit on Al Marjan Island with direct beach access.\n\nAston Martin's design team was responsible for the interiors of every residence, applying the brand's approach to precision, material quality, and artisanal craftsmanship to kitchens, bathrooms, and living spaces. The collaboration integrates cutting-edge design with the timeless finishes associated with the Aston Martin brand.\n\nThe Astera is under development with handover scheduled for December 2028. DarGlobal is the master developer responsible for delivery on Al Marjan Island. Contact the sales team for current unit availability, pricing, and payment plan terms.\n\nThe Astera is on Al Marjan Island, a man-made island off the Ras Al Khaimah coastline, 60 minutes from Dubai International Airport. It sits approximately 5 minutes from the upcoming Wynn Resort on Al Marjan Island, the first casino resort in the Middle East.\n\nAmenities include direct beach access, an infinity pool, spa, sauna, pool bar, fitness centre, indoor cinema, yoga lawn, multipurpose hall, children's play area, and premium 24/7 security. Beach villas offer private access to the shoreline directly from the residence.\n\nAl Marjan Island is an emerging market where average apartment capital values rose approximately 35% in a single year. Branded residences historically command price premiums of 30 to 200% over comparable unbranded stock, and the Wynn Resort announcement has been directly linked to market price doubling over two years. Buyers should seek independent investment advice.\n\nBuyers investing 2 million AED or more in UAE real estate may apply for a 10-year Golden Visa. The UAE applies 0% income tax and 0% property tax, providing a tax-efficient holding environment for both resident and international buyers.\n\nThe announcement of the Wynn Resort on Al Marjan Island, the first casino resort in the Middle East, has been directly linked to a doubling of market prices over the past two years. The resort will be approximately 5 minutes from The Astera and is expected to drive further tourism and rental demand for beachfront properties on the island.\n\nBuyers can register interest, book a unit, or download the project brochure through DarGlobal at darglobal.co.uk. The sales team can provide current unit availability, pricing, and payment plan details on request.\n\nRegister Your Interest\n\nDiscover exclusive luxury real estate and investment opportunities with DarGlobal\n\nPlease provide your details to register interest.\n\n."
+      },
+      "extracted_at": "2026-11-19T13:25:33.655735Z"
+    },
+    {
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com",
+      "data": {
+        "title": "THE ALBERT HALL MANSION",
+        "page_type": "individual_property",
+        "description": "Explore the Premiere Edition Collection by DarGlobal— Million-dollar houses for sale in the world’s most prestigious locations. Own a rare branded home today!",
+        "content": "THE ALBERT HALL MANSION\n\nAlbert Hall Mansions| Residence 7 & 8\n\nAlbert Hall Mansions HistoryA prestigious AddressLocationFloor Plans\n\nAlbert Hall Mansions History\n\nAlbert Hall Mansions, nestled in the heart of London, is an iconic residential complex with a rich Victorian heritage. Designed by renowned architect Richard Norman Shaw, construction began in 1879 and concluded in 1886, marking a milestone in London’s architectural evolution. Among the city’s first luxury apartments, it catered to Victorian elites. Its red-brick façade, ornate terracotta details, and grand gables epitomize the Queen Anne revival style. Home to notable figures over the years, it remains a symbol of prestige and timeless elegance.\n\nA prestigious Address\n\nThe Albert Hall Mansion is situated in one of London’s most prestigious neighborhoods, directly overlooking the iconic Royal Albert Hall. This historic and architecturally significant building offers residents breathtaking views as well as an exclusive address. The location provides the perfect balance between the vibrant energy of city life and the tranquility of a refined residential area.\n\nLocation\n\nAlbert Hall Mansions is ideally located in one of London's most prestigious neighborhoods, directly overlooking the iconic Royal Albert Hall. This historic building offers breathtaking views and an exclusive address, balancing the vibrant energy of city life with the tranquility of a refined residential area. Situated in South Kensington, residents have access to Hyde Park, the Victoria and Albert Museum, and the luxury shopping of Knightsbridge, along with an array of fine dining, shopping, and cultural attractions. This location is perfect for those seeking a sophisticated and dynamic lifestyle.\n\nFloor Plans\n\nFor more details, please join the waiting list.\n\n."
+      },
+      "extracted_at": "2026-11-19T13:25:33.660284Z"
+    }
+  ],
+  "review_metadata": [
+    {
+      "key": "company_About Us",
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/about",
+      "canonical_url": "https://darglobal.co.uk/about"
+    },
+    {
+      "key": "company_Contact | Luxury Real Estate, DarGlobal",
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/get-in-touch",
+      "canonical_url": "https://darglobal.co.uk/get-in-touch"
+    },
+    {
+      "key": "company_DarGlobal | International Luxury Real Estate Developer",
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/?utm_source=chatgpt.com",
+      "canonical_url": "https://darglobal.co.uk/"
+    },
+    {
+      "key": "company_Trump Branded Residences Gulf | DarGlobal Portfolio",
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/partners/the-trump-organization",
+      "canonical_url": "https://darglobal.co.uk/partners/the-trump-organization"
+    },
+    {
+      "key": "project_directory_Buy Modern Apartments & Exclusive Villas | International Homes for Sale",
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/projects/properties-in-uk?utm_source=chatgpt.com",
+      "canonical_url": "https://darglobal.co.uk/projects/properties-in-uk"
+    },
+    {
+      "key": "individual_property_The Astera, Interiors by Aston Martin | Al Marjan Island RAK",
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/the-astera?utm_source=chatgpt.com",
+      "canonical_url": "https://darglobal.co.uk/the-astera"
+    },
+    {
+      "key": "individual_property_Buy Branded Homes | Million Dollar Houses for Sale | Darglobal",
+      "source": "darglobal.co.uk",
+      "url": "https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com",
+      "canonical_url": "https://darglobal.co.uk/one-of-one/the-albert-hall-mansion",
+      "original_csv_title": "Buy Branded Homes | Million Dollar Houses for Sale | Darglobal",
+      "title_normalization_note": "Display title preserved verbatim from the first non-empty extracted page heading."
+    }
+  ]
+}

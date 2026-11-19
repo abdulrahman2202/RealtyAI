@@ -1,0 +1,349 @@
+{
+  "reviewed_at": "2026-11-19T17:07:40.886640+00:00",
+  "status": "completed",
+  "workspace": "C:\\Programming\\RealtyAI",
+  "candidate_count": 26,
+  "bytes_planned": 524905,
+  "entries": [
+    {
+      "path": ".tmp/phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb/test_importer_writes_nested_re0/review/extracted_records.json",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb\\test_importer_writes_nested_re0\\review\\extracted_records.json",
+      "reason": "Superseded Phase 6.10.2 test-generated schema-review output for one explicitly synthetic record; schema/design, source data, and tests are preserved.",
+      "sha256": "0d13a8b9f7ab82785b28371e0ffe2f08ce810968b63ea2a77e52fbfc1708daf5",
+      "bytes": 1217,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb/test_importer_writes_nested_re0/review/import_report.md",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb\\test_importer_writes_nested_re0\\review\\import_report.md",
+      "reason": "Superseded Phase 6.10.2 test-generated schema-review output for one explicitly synthetic record; schema/design, source data, and tests are preserved.",
+      "sha256": "5a7072400cc7a683ca32183b73d618dfa852c81173b2f4ad6ec1fefce6b56626",
+      "bytes": 3147,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb/test_importer_writes_nested_re0/synthetic_darglobal/01-first.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb\\test_importer_writes_nested_re0\\synthetic_darglobal\\01-first.csv",
+      "reason": "Runtime-generated synthetic importer fixture from an obsolete test run; original raw CSVs and maintained tests are preserved.",
+      "sha256": "4d0ce375fb983c1c2d3f2553b0fc76e3fbe6688c57704ccd0167f5dae008adf1",
+      "bytes": 278,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb/test_importer_writes_nested_re0/synthetic_darglobal/02-duplicate.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb\\test_importer_writes_nested_re0\\synthetic_darglobal\\02-duplicate.csv",
+      "reason": "Runtime-generated synthetic importer fixture from an obsolete test run; original raw CSVs and maintained tests are preserved.",
+      "sha256": "e0e7fb8213fe38e11dc150a99fc95b50a81378d6fd621651fdaae2b89c8035d6",
+      "bytes": 289,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb/test_importer_writes_nested_re0/synthetic_darglobal/03-empty.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6103-pytest-4fa9b5598b02470e9ef693c09136edcb\\test_importer_writes_nested_re0\\synthetic_darglobal\\03-empty.csv",
+      "reason": "Runtime-generated synthetic importer fixture from an obsolete test run; original raw CSVs and maintained tests are preserved.",
+      "sha256": "af520b60c15053c687a08ab43484544eb526e1d41a31c3a5c867927373b64334",
+      "bytes": 62,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_both_actual_sources_appen0/receipt.json",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_both_actual_sources_appen0\\receipt.json",
+      "reason": "Obsolete receipt for an isolated ephemeral test collection, not application ingestion; current persistent receipt and preflight are preserved.",
+      "sha256": "d93b898f6cc736d4cb258fe236dfc643011d74005ec0c4d8ce79fcb2d50169b0",
+      "bytes": 103440,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_crawler_produces_json_out0/darglobal/429d90ae2a80.json",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_crawler_produces_json_out0\\darglobal\\429d90ae2a80.json",
+      "reason": "Disposable crawler-fixture output from a completed test run; local HTML fixture, crawler test, and actual processed records are preserved.",
+      "sha256": "45cc04be08f49eade952b16d0fd4d0704a3094a87dd32bccd24831f6a735c0eb",
+      "bytes": 520,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_partial_failure_can_resum0/receipt.json",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_partial_failure_can_resum0\\receipt.json",
+      "reason": "Obsolete receipt for an isolated ephemeral test collection, not application ingestion; current persistent receipt and preflight are preserved.",
+      "sha256": "89104a62970f455d307b6da44e53e95e9c7ed4a2c06b80607cc7d5e7cc8f187d",
+      "bytes": 14350,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first0/a/first.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first0\\a\\first.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "6fdfa52e6289e7d47387ce203902d6deb2a77bcc78d578a831669c3d6c62bcb8",
+      "bytes": 113,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first0/b/malformed.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first0\\b\\malformed.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "5eb67bdd7bc6b6fc4b8b1bd87cbaf02275ffb94c1e6bf8dc2763af069cb015c2",
+      "bytes": 77,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first0/b/second.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first0\\b\\second.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "b96a938c4b8ffaf6d2512a52d368d3f464a73335b784ca8a48fb7c46cc7c113a",
+      "bytes": 115,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first1/a/first.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first1\\a\\first.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "d84655e55eeb2f56f2afe559f669d557b1121ac9c6cac12cea15b7c21788e33a",
+      "bytes": 113,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first1/b/malformed.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first1\\b\\malformed.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "b6955d21495468958aa9bfdba49fbc55f22f30d95f2d5aa3b9dfa784bdad202d",
+      "bytes": 77,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first1/b/second.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first1\\b\\second.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "741d0632e0cb4f0582e6e6625eee04fab4e8f7fc75a8be9b25d01b45cbfd32f7",
+      "bytes": 115,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first2/a/first.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first2\\a\\first.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "e30da4d1a3701d8ecbbb7f1ecfaa7321f263a51cf80df49b2f02c0d234c0f7d0",
+      "bytes": 113,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first2/b/malformed.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first2\\b\\malformed.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "1bf78c7d9f604762b2e055a4a7c903415b5244be7298c421eb69ff23027f1c32",
+      "bytes": 77,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_recursive_discovery_first2/b/second.csv",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_recursive_discovery_first2\\b\\second.csv",
+      "reason": "Runtime-generated delimiter/deduplication/malformed-row fixture from a completed test run; maintained tests recreate it and original raw CSVs are preserved.",
+      "sha256": "2f57f783ad676c28478eb1dbd696866651260e100017d909588fcee8507ce57d",
+      "bytes": 115,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_review_outputs_use_actual0/chunk_review.json",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_review_outputs_use_actual0\\chunk_review.json",
+      "reason": "Redundant Phase 6.11 test review output; authoritative source reports, reviewed text/IDs, original source knowledge, and ingestion plan are preserved.",
+      "sha256": "96f41ed7b7fbdef594acefdc1e28b55f2dc72cefc48f1b9da40c4713d24c4ce7",
+      "bytes": 252402,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_review_outputs_use_actual0/combined_import_report.md",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_review_outputs_use_actual0\\combined_import_report.md",
+      "reason": "Redundant Phase 6.11 test review output; authoritative source reports, reviewed text/IDs, original source knowledge, and ingestion plan are preserved.",
+      "sha256": "38408564855d0c0ff7e26297f41646dae39c69b11a84ce271a5b37b70fc52817",
+      "bytes": 2367,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_review_outputs_use_actual0/darglobal_import_report.md",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_review_outputs_use_actual0\\darglobal_import_report.md",
+      "reason": "Redundant Phase 6.11 test review output; authoritative source reports, reviewed text/IDs, original source knowledge, and ingestion plan are preserved.",
+      "sha256": "5fcc18b8c556a3e6dad53e7592ab111c2ae78368790ad54116685b3a25303a6f",
+      "bytes": 4888,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_review_outputs_use_actual0/proposed_ingestion_manifest.json",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_review_outputs_use_actual0\\proposed_ingestion_manifest.json",
+      "reason": "Redundant Phase 6.11 test review output; authoritative source reports, reviewed text/IDs, original source knowledge, and ingestion plan are preserved.",
+      "sha256": "54b6448417e3b8143920fe4aa6805986f0bf027a8a7e9ad1bf48251ed4d6f401",
+      "bytes": 104541,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c/test_review_outputs_use_actual0/wasalt_import_report.md",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase611-final-tests-ec0c61b1a45f4c7aa26921328955c40c\\test_review_outputs_use_actual0\\wasalt_import_report.md",
+      "reason": "Redundant Phase 6.11 test review output; authoritative source reports, reviewed text/IDs, original source knowledge, and ingestion plan are preserved.",
+      "sha256": "48b347ed095b52eefc6aaa4cb1d6ab4a8918a1db0076ae92eeab2fdb2e93a46c",
+      "bytes": 3441,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": "data/import_review/rag_content_audit.md",
+      "absolute_path": "C:\\Programming\\RealtyAI\\data\\import_review\\rag_content_audit.md",
+      "reason": "Superseded Phase 6.10.3 compatibility audit; its findings, measured token counts, size-range caution, and historical verification results are preserved in the current ingestion report and cleanup review.",
+      "sha256": "ecfe8ed8175fec1bae42037955679e972818c647776240037b737da8bb9d1d16",
+      "bytes": 21307,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase6112/legacy_baseline.json",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6112\\legacy_baseline.json",
+      "reason": "Redundant prior legacy-file hash snapshot; the current preservation baseline contains the same nine hashes/sizes/timestamps and records a successful comparison to this snapshot.",
+      "sha256": "a60505566ef0cbf726c6df1fbdb45c77ad57d87c9e51143dd63d0f607e5da453",
+      "bytes": 1801,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase6113/verify_chat_probe.py",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6113\\verify_chat_probe.py",
+      "reason": "Unused temporary copy of the API verifier; the actual backend was started directly with Uvicorn and the maintained source verifier is preserved.",
+      "sha256": "00eb2950f7adf79bc28ef74bd7d8974b214af7ba91952b3c6fe1d1600b5d696e",
+      "bytes": 5758,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    },
+    {
+      "path": ".tmp/phase6113/verify_frontend_probe.cjs",
+      "absolute_path": "C:\\Programming\\RealtyAI\\.tmp\\phase6113\\verify_frontend_probe.cjs",
+      "reason": "Completed temporary browser-verifier copy used to preserve prior reports; current browser results/screenshots and the maintained source verifier are preserved.",
+      "sha256": "aa1ad617dc5ba46268f23cc98695af4fdd2f4aa8f51774ecbcfc1c4e56a3d52c",
+      "bytes": 4182,
+      "inspected": true,
+      "status": "deleted",
+      "maintained_code_or_documentation_dependencies": []
+    }
+  ],
+  "information_preserved": {
+    "retired_audit_phase": "6.10.3",
+    "cached_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "dimension": 384,
+    "encoder_max_tokens": 256,
+    "full_records_exceeding_encoder_limit": 5,
+    "token_measurements": [
+      {
+        "page": "About Us",
+        "current_document_tokens": 5,
+        "content_tokens": 382,
+        "full_text_tokens": 385
+      },
+      {
+        "page": "Contact",
+        "current_document_tokens": 37,
+        "content_tokens": 429,
+        "full_text_tokens": 469
+      },
+      {
+        "page": "DarGlobal homepage",
+        "current_document_tokens": 49,
+        "content_tokens": 196,
+        "full_text_tokens": 243
+      },
+      {
+        "page": "Trump partner page",
+        "current_document_tokens": 48,
+        "content_tokens": 115,
+        "full_text_tokens": 161
+      },
+      {
+        "page": "UK project directory",
+        "current_document_tokens": 43,
+        "content_tokens": 462,
+        "full_text_tokens": 503
+      },
+      {
+        "page": "The Astera",
+        "current_document_tokens": 37,
+        "content_tokens": 1198,
+        "full_text_tokens": 1245
+      },
+      {
+        "page": "THE ALBERT HALL MANSION",
+        "current_document_tokens": 40,
+        "content_tokens": 329,
+        "full_text_tokens": 367
+      }
+    ],
+    "test_results": {
+      "passed": 30,
+      "skipped": 12,
+      "seconds": 12.95,
+      "exit_code": 0,
+      "modules": {
+        "tests/test_csv_import.py": "18 passed",
+        "tests/test_rag_audit.py": "12 passed",
+        "tests/test_rag.py": "12 skipped; database operations excluded"
+      }
+    },
+    "lint_result": "Ruff passed once over scripts/csv_import.py, tests/test_csv_import.py, tests/test_rag.py, tests/test_rag_audit.py; exit 0",
+    "size_range_caution": "Astera source specifications list 682 - 12,277 SQFT and FAQ text lists 61 to 265 sqm; the source does not establish equivalence and no conversion/reconciliation is authorized.",
+    "findings_preserved": "Old title/description-only embeddings omitted full content/page type, long pages exceeded 256 tokens, hnw_distance_method was not a metric configuration, transformed distances were discontinuous, implicit request-time ingestion was unsafe, and legacy embedding provenance was unverified. Current shared preparation/retrieval/indexing and separate approved collection address these findings."
+  },
+  "scratch_review_same_knowledge_and_chunk_ids": true,
+  "retained_due_to_current_use_or_protection": [
+    "data/import_review/import_report.md",
+    "data/import_review/extracted_records.json",
+    ".tmp/phase6112/retrieval_diagnosis.json",
+    ".tmp/phase6112/frontend-0.png",
+    ".tmp/phase6112/frontend-1.png",
+    "docs/csv-import-design.md",
+    "docs/raw-data-validation-report.md",
+    "scripts/diagnose_chat.py",
+    "list_csvs.py"
+  ],
+  "deleted_count": 26,
+  "completed_at": "2026-11-19T17:10:19.3133219Z",
+  "final_verified_at": "2026-11-19T17:12:26.297841+00:00"
+}

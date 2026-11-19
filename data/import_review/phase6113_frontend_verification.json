@@ -1,0 +1,41 @@
+{
+  "questions": [
+    {
+      "question": "What services does Wasalt provide?",
+      "http_status": 200,
+      "answer": "- AI‑powered property search platform that lists verified homes, projects and master‑plans across Saudi Arabia【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】  \n- Online and hybrid real‑estate auctions (including private‑seller and Infath‑partner assets)【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】  \n- Dedicated “Wasalt Search” tool for enhanced, AI‑backed property discovery【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】  \n- “Wasalt Auctions” feature that runs timed auctions where bidders compete for the final price【https://wasalt.sa/en】  \n- Projects & master‑plan marketplace that lets users reserve investment plots online【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】  \n- Mobile apps (Wasalt & Wasalt Business) for buying, selling, renting and connecting directly with brokers, plus a “Matchmaker” service that suggests leads based on live listings【https://wasalt.sa/en】",
+      "displayed_text": "AI‑powered property search platform that lists verified homes, projects and master‑plans across Saudi Arabia【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】\nOnline and hybrid real‑estate auctions (including private‑seller and Infath‑partner assets)【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】\nDedicated “Wasalt Search” tool for enhanced, AI‑backed property discovery【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】\n“Wasalt Auctions” feature that runs timed auctions where bidders compete for the final price【https://wasalt.sa/en】\nProjects & master‑plan marketplace that lets users reserve investment plots online【https://wasalt.sa/en/corporate?utm_source=chatgpt.com】\nMobile apps (Wasalt & Wasalt Business) for buying, selling, renting and connecting directly with brokers, plus a “Matchmaker” service that suggests leads based on live listings【https://wasalt.sa/en】",
+      "source_links": [
+        {
+          "title": "Wasalt Real Estate Services",
+          "url": "https://wasalt.sa/en/corporate?utm_source=chatgpt.com"
+        },
+        {
+          "title": "Properties For Sale and Rent in Saudi Arabia | Wasalt",
+          "url": "https://wasalt.sa/en"
+        }
+      ],
+      "correct_citations": true,
+      "useful_answer": true,
+      "expected_facts_present": true,
+      "new_data_citations": true
+    },
+    {
+      "question": "What information is available about THE ALBERT HALL MANSION?",
+      "http_status": 200,
+      "answer": "**THE ALBERT HALL MANSION (DarGlobal)** – https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com  \n\n- Part of DarGlobal’s “Premiere Edition Collection,” marketed as million‑dollar homes in the world’s most prestigious locations.  \n- Situated in South Kensington, directly overlooking the Royal Albert Hall and offering views of Hyde Park, the Victoria and Albert Museum, and Knightsbridge’s luxury shops.  \n- Historic Victorian residence designed by architect Richard Norman Shaw; construction ran from 1879 to 1886, exemplifying Queen Anne revival style with a red‑brick façade and ornate terracotta detailing.  \n- One of London’s first luxury apartment blocks, originally catering to Victorian elites and still regarded as a symbol of prestige.  \n- Detailed floor plans are not publicly posted; prospective buyers must join a waiting list to obtain more information.  \n\n*No additional specifications (price, unit size, completion date, etc.) are provided in the available source.*",
+      "displayed_text": "THE ALBERT HALL MANSION (DarGlobal) – https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com\n\nPart of DarGlobal’s “Premiere Edition Collection,” marketed as million‑dollar homes in the world’s most prestigious locations.\nSituated in South Kensington, directly overlooking the Royal Albert Hall and offering views of Hyde Park, the Victoria and Albert Museum, and Knightsbridge’s luxury shops.\nHistoric Victorian residence designed by architect Richard Norman Shaw; construction ran from 1879 to 1886, exemplifying Queen Anne revival style with a red‑brick façade and ornate terracotta detailing.\nOne of London’s first luxury apartment blocks, originally catering to Victorian elites and still regarded as a symbol of prestige.\nDetailed floor plans are not publicly posted; prospective buyers must join a waiting list to obtain more information.\n\nNo additional specifications (price, unit size, completion date, etc.) are provided in the available source.",
+      "source_links": [
+        {
+          "title": "THE ALBERT HALL MANSION",
+          "url": "https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com"
+        }
+      ],
+      "correct_citations": true,
+      "useful_answer": true,
+      "expected_facts_present": true,
+      "new_data_citations": true
+    }
+  ],
+  "browser_errors": []
+}

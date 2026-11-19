@@ -1,199 +1,92 @@
-"""RAG retrieval pipeline tests for RealtyAI.
+"""Shared-source retrieval against isolated Chroma collections and actual CSV documents."""
 
-Uses the two DarGlobal JSON records as the vector store corpus.
-No LLM, no FastAPI, no frontend — pure semantic retrieval via
-ChromaDB + SentenceTransformers.
-"""
+from datetime import UTC, datetime
 
-import json
-from pathlib import Path
-
-import pytest
-
-from backend.rag import get_all_records, init_from_processed_data, search
+from backend import rag
+from backend.data_access import DEFAULT_POLICY, SourcePolicy
+from backend.indexing import IngestionApproval
+from backend.models import ExtractedRecord
 
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
-PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed" / "darglobal"
+def _index(records, collection, profile, encoder, tmp_path, policy=DEFAULT_POLICY):
+    return rag.index_records(records, collection=collection, dry_run=False, profile=profile, encoder=encoder,
+        approval=IngestionApproval(str(collection.id), "pytest isolated collection"), policy=policy, lock_directory=tmp_path / "locks")
 
 
-# ── Helpers ──────────────────────────────────────────────────────
+def test_actual_sources_share_one_collection_and_support_source_filters(actual_documents, collection, profile, fake_encoder, tmp_path):
+    _index(actual_documents, collection, profile, fake_encoder, tmp_path)
+    for source in ("darglobal", "wasalt"):
+        rows = rag.get_all_records(collection=collection, sources=[source])
+        assert rows and all(row["metadata"]["source"] == source for row in rows)
+    combined = rag.search("Compare DarGlobal and Wasalt services", sources=["darglobal", "wasalt"],
+        collection=collection, encoder=fake_encoder)
+    assert {record["metadata"]["source"] for record in combined} == {"darglobal", "wasalt"}
 
 
-def _load_json(name: str) -> dict:
-    return json.loads((PROCESSED_DIR / name).read_text(encoding="utf-8"))
+def test_exact_property_name_is_not_overwhelmed_by_company_or_directory_content(actual_documents, collection, profile, fake_encoder, tmp_path):
+    _index(actual_documents, collection, profile, fake_encoder, tmp_path)
+    results = rag.search("What is The Astera handover date?", collection=collection, encoder=fake_encoder)
+    assert results
+    assert all(record["metadata"]["page_type"] == "individual_property" for record in results)
+    assert all("/the-astera?" in record["metadata"]["url"] for record in results)
+    assert any("December 2028" in record["body"] for record in results)
+    assert all(record["metadata"]["title"] == "The Astera, Interiors by Aston Martin | Al Marjan Island RAK" for record in results)
 
 
-# ── Fixtures ───────────────────────────────────────────────────────
+def test_page_type_scopes_keep_directories_and_auctions_separate(actual_documents, collection, profile, fake_encoder, tmp_path):
+    _index(actual_documents, collection, profile, fake_encoder, tmp_path)
+    directories = rag.search("Wasalt properties for sale in Saudi Arabia", sources=["wasalt"], page_types=["project_directory"],
+        collection=collection, encoder=fake_encoder)
+    assert directories and all(row["metadata"]["page_type"] == "project_directory" for row in directories)
+    auctions = rag.search("Wasalt auctions", page_types=["auction"], collection=collection, encoder=fake_encoder)
+    assert auctions and all(row["metadata"]["page_type"] == "auction" for row in auctions)
+    assert rag.search("Wasalt villa bedrooms", sources=["wasalt"], collection=collection, encoder=fake_encoder) == []
 
 
-@pytest.fixture
-def isolated_rag_db(tmp_path, monkeypatch):
-    """Provide an isolated ChromaDB instance backed by a temporary directory.
-
-    Ensures tests that call clear_collection() cannot erase the real
-    development database at data/vector_db/.
-    """
-    from chromadb.api.shared_system_client import SharedSystemClient
-
-    from backend import rag
-
-    temp_db_dir = tmp_path / "vector_db"
-    temp_db_dir.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("REALTYAI_VECTOR_DB_DIR", str(temp_db_dir))
-
-    # Clear ChromaDB's shared system registry so a client can be created
-    # with different settings (temporary directory) instead of colliding
-    # with the existing client pointed at the real database.
-    SharedSystemClient._identifier_to_system.clear()
-
-    # Reset module-level singletons so _get_client() creates a fresh client
-    # pointed at the temporary directory.
-    rag._chroma_client = None
-    rag._collection = None
-    rag._encoder = None
-
-    yield
-
-    # Restore: clear registry and reset singletons so subsequent tests
-    # create clients pointing to the real database path.
-    SharedSystemClient._identifier_to_system.clear()
-    rag._chroma_client = None
-    rag._collection = None
-    rag._encoder = None
+def test_property_id_filters_and_exact_size_identifiers(actual_documents, collection, profile, fake_encoder, tmp_path):
+    _index(actual_documents, collection, profile, fake_encoder, tmp_path)
+    record = next(item for item in rag.get_all_records(collection=collection) if "/the-astera?" in item["metadata"]["url"])
+    results = rag.search("61 to 265 sqm", document_id=record["metadata"]["document_id"], collection=collection, encoder=fake_encoder)
+    assert results and all(item["metadata"]["document_id"] == record["metadata"]["document_id"] for item in results)
+    assert any("61 to 265 sqm" in item["body"] for item in results)
 
 
-# ── Tests ────────────────────────────────────────────────────────
+def test_longer_exact_entity_wins_over_a_nested_property_name(actual_documents, collection, profile, fake_encoder, tmp_path):
+    synthetic = ExtractedRecord(source="darglobal", url="https://darglobal.example/one-of-one/top-of-the-astera",
+        extracted_at=datetime(2026, 11, 19, tzinfo=UTC), data={"title": "Top of the Astera", "page_type": "individual_property",
+            "content": "Distinct synthetic property evidence, bedrooms: 5.", "description": "", "data_origin": "synthetic"})
+    policy = SourcePolicy(allow_synthetic=True)
+    _index([*actual_documents, synthetic], collection, profile, fake_encoder, tmp_path, policy)
+    results = rag.search("Tell me about Top of the Astera", collection=collection, encoder=fake_encoder, policy=policy)
+    assert results and all(record["metadata"]["title"] == "Top of the Astera" for record in results)
 
 
-def test_init_from_processed_data_indexes_two_records():
-    """Initialising from processed data should index both DarGlobal records."""
-    init_from_processed_data()
-
-    records = get_all_records()
-    assert len(records) == 2, f"Expected 2 records, got {len(records)}"
+def test_unrelated_query_is_rejected_with_no_keyword_or_vector_relevance(actual_documents, collection, profile, fake_encoder, tmp_path):
+    _index(actual_documents, collection, profile, fake_encoder, tmp_path)
+    assert rag.search("neutrino entanglement xyzzy", collection=collection, encoder=fake_encoder) == []
 
 
-def test_init_from_processed_data_preserves_urls():
-    """Indexed records must preserve the source URL in metadata."""
-    init_from_processed_data()
-
-    records = get_all_records()
-    urls = {r["metadata"].get("url", "") for r in records}
-    assert "https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION" in urls
-    assert "https://darglobal.co.uk/one-of-one/top-of-the-astera" in urls
+def test_empty_collection_and_blank_queries_never_load_or_ingest(collection, fake_encoder):
+    assert rag.search("What is available?", collection=collection, encoder=fake_encoder) == []
+    assert rag.search(" ", collection=collection, encoder=fake_encoder) == []
+    assert rag.get_all_records(collection=collection) == []
+    assert fake_encoder.calls == []
 
 
-def test_init_from_processed_data_preserves_titles():
-    """Indexed records must preserve property titles."""
-    init_from_processed_data()
-
-    records = get_all_records()
-    titles = {r["metadata"].get("title", "") for r in records}
-    assert "Albert Hall Mansions" in titles
-    assert "Top Of the Astera" in titles
-
-
-def test_search_top_of_astera_retrieval():
-    """Searching for 'Top of the Astera' should return the Astera record."""
-    init_from_processed_data()
-
-    results = search("Top of the Astera", k=4)
-    assert len(results) > 0, "Expected at least one search result"
-
-    # The Top of the Astera record should be in the results
-    result_ids = {r["metadata"].get("title", "") for r in results}
-    assert "Top Of the Astera" in result_ids
+def test_real_cached_embeddings_retrieve_actual_property_evidence(actual_documents, collection, profile, real_encoder, tmp_path):
+    _index(actual_documents, collection, profile, real_encoder, tmp_path)
+    results = rag.search("beach residences with Aston Martin interiors", sources=["darglobal"],
+        page_types=["individual_property"], collection=collection, encoder=real_encoder)
+    assert results and "/the-astera?" in results[0]["metadata"]["url"]
+    assert "semantic" in results[0]["retrieval_methods"]
+    assert results[0]["distance"] is not None
+    assert any("Aston Martin" in result["body"] for result in results)
 
 
-def test_search_albert_hall_retrieval():
-    """Searching for 'Albert Hall' should return the Albert Hall Mansions record."""
-    init_from_processed_data()
-
-    results = search("Albert Hall Mansions", k=4)
-    assert len(results) > 0, "Expected at least one search result"
-
-    result_ids = {r["metadata"].get("title", "") for r in results}
-    assert "Albert Hall Mansions" in result_ids
-
-
-def test_search_returns_metadata_source_and_url():
-    """Search results must include source URL and metadata."""
-    init_from_processed_data()
-
-    results = search("luxury villa", k=4)
-    assert len(results) > 0
-    for r in results:
-        assert "metadata" in r, "Each result must have metadata"
-        meta = r["metadata"]
-        assert "source" in meta, "Metadata must include source"
-        assert "url" in meta, "Metadata must include url"
-
-
-def test_search_unknown_query_returns_empty():
-    """An unknown query returns results with high distance (vector search always finds some similarity)."""
-    init_from_processed_data()
-
-    results = search("completely unrelated query zxyz", k=4)
-    # Vector search returns top-k results regardless of query relevance;
-    # verify results have expected structure rather than expecting empty list.
-    assert len(results) > 0, "Expected at least one search result"
-    for r in results:
-        assert "metadata" in r
-        assert "distance" in r
-        assert 0.0 <= r["distance"] <= 1.0
-
-
-def test_search_k_equals_one():
-    """Search with k=1 should return exactly one result."""
-    init_from_processed_data()
-
-    results = search("Albert Hall", k=1)
-    assert len(results) == 1, f"Expected exactly 1 result with k=1, got {len(results)}"
-
-
-def test_search_k_default_four():
-    """Search with default k=4 should return up to 4 results."""
-    init_from_processed_data()
-
-    results = search("luxury property")
-    assert len(results) <= 4, (
-        f"Expected at most 4 results with default k, got {len(results)}"
-    )
-
-
-def test_search_distance_is_float_between_0_and_1():
-    """Search result distances should be floats in [0, 1] (cosine distance)."""
-    init_from_processed_data()
-
-    results = search("property", k=1)
-    assert len(results) > 0
-    dist = results[0].get("distance")
-    assert dist is not None, "Result should have distance field"
-    assert 0.0 <= float(dist) <= 1.0, f"Distance should be in [0,1], got {dist}"
-
-
-def test_empty_db_no_crash(isolated_rag_db):
-    """Running search before any records are indexed should not crash."""
-    # Clear any previously indexed records in the isolated database.
-    from backend.rag import clear_collection
-
-    clear_collection()
-
-    results = search("anything", k=4)
-    # With no records indexed, search should return empty list
-    assert results == [], (
-        f"Expected empty list when DB is not initialised, got {results}"
-    )
-
-
-def test_record_has_required_fields():
-    """Each indexed record should have title, description, and url."""
-    init_from_processed_data()
-
-    records = get_all_records()
-    for r in records:
-        meta = r["metadata"]
-        assert meta.get("title") is not None, f"Record missing title: {r}"
-        assert meta.get("description") is not None, f"Record missing description: {r}"
-        assert meta.get("url") is not None, f"Record missing url: {r}"
+def test_raw_chroma_distances_are_preserved(actual_documents, collection, profile, fake_encoder, tmp_path, monkeypatch):
+    _index(actual_documents, collection, profile, fake_encoder, tmp_path)
+    target = next(record for record in rag.get_all_records(collection=collection) if "/the-astera?" in record["metadata"]["url"])
+    monkeypatch.setattr(collection, "query", lambda **_kwargs: {"ids": [[target["id"]]], "distances": [[1.2]]})
+    results = rag.search("The Astera", collection=collection, encoder=fake_encoder)
+    matched = next(result for result in results if result["id"] == target["id"])
+    assert matched["distance"] == 1.2

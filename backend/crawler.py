@@ -3,23 +3,23 @@ from __future__ import annotations
 import json
 import logging
 import time
-from collections.abc import Iterator
-from datetime import datetime
+from collections.abc import Callable
+from datetime import UTC, datetime
+from hashlib import sha256
 from pathlib import Path
-from typing import Any, Optional, Dict, List, Type, Union, Callable
+from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
 from backend.models import (
     BaseProperty,
-    DarGlobalProperty,
-    WasaltProperty,
     ExtractedRecord,
 )
 
@@ -52,12 +52,10 @@ def _is_retryable(httpx_exc: Any) -> bool:
     """Check if an exception is retryable."""
     if isinstance(httpx_exc, (httpx.TimeoutException, httpx.NetworkError)):
         return True
-    if (
+    return (
         hasattr(httpx_exc, "status_code")
         and httpx_exc.status_code in RETRYABLE_STATUS_CODES
-    ):
-        return True
-    return False
+    )
 
 
 retry_decorator = retry(
@@ -120,8 +118,8 @@ class BaseCrawler:
         self,
         dry_run: bool = True,
         respect_robots: bool = True,
-        output_dir_dg: Optional[Path] = None,
-        output_dir_ws: Optional[Path] = None,
+        output_dir_dg: Path | None = None,
+        output_dir_ws: Path | None = None,
     ) -> None:
         self.dry_run = dry_run
         self.respect_robots = respect_robots
@@ -145,7 +143,7 @@ class BaseCrawler:
         extractor_func: Callable[[str, str], BaseProperty],
         output_dir: Path,
         filename_pattern: str = "{uuid}.json",
-    ) -> Optional[ExtractedRecord]:
+    ) -> ExtractedRecord | None:
         """Crawl a single URL, extract data, and save.
 
         Args:
@@ -179,7 +177,7 @@ class BaseCrawler:
                 # The test infrastructure handles actual extraction from fixtures
                 self.total_processed += 1
                 return None  # Dry run: skip, test uses real fetch path
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- Preserve diagnostics at this legacy crawler boundary.
                 logger.error(f"Error in dry run for {url}: {e}")
                 self.total_errors += 1
                 return None
@@ -187,7 +185,7 @@ class BaseCrawler:
         # Real fetch
         try:
             resp = self.throttled_client.get(url)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- Preserve diagnostics at this legacy crawler boundary.
             logger.error(f"Failed to fetch {url}: {e}")
             self.total_errors += 1
             return None
@@ -195,7 +193,7 @@ class BaseCrawler:
         # Extract data
         try:
             record = extractor_func(resp.text, url)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- Preserve diagnostics at this legacy crawler boundary.
             logger.error(f"Extraction error for {url}: {e}")
             self.total_errors += 1
             return None
@@ -211,7 +209,7 @@ class BaseCrawler:
         # Save to JSON
         try:
             out_path = output_dir / filename_pattern.format(
-                uuid=int(hashlib(url)) % 1000000  # simple hash-based naming
+                uuid=sha256(url.encode("utf-8")).hexdigest()[:12]
             )
             # Use model_dump for JSON serialization
             data = record.model_dump(
@@ -223,7 +221,7 @@ class BaseCrawler:
             data["extracted_at"] = (
                 record.extracted_at.isoformat()
                 if record.extracted_at
-                else datetime.utcnow().isoformat()
+                else datetime.now(UTC).isoformat()
             )
 
             with open(out_path, "w", encoding="utf-8") as f:
@@ -233,7 +231,7 @@ class BaseCrawler:
             self.total_processed += 1
             return record
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- Preserve diagnostics at this legacy crawler boundary.
             logger.error(f"Save error for {url}: {e}")
             self.total_errors += 1
             return None
@@ -243,7 +241,7 @@ class BaseCrawler:
         urls: list[str],
         extractor_dg: Callable[[str, str], BaseProperty],
         extractor_ws: Callable[[str, str], BaseProperty],
-        sources: Optional[list[str]] = None,
+        sources: list[str] | None = None,
     ) -> list[ExtractedRecord]:
         """Crawl multiple URLs, dispatching to appropriate extractor.
 

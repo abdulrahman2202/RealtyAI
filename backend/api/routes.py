@@ -12,6 +12,7 @@ from backend.llm import (
     LLMRateLimitError,
     LLMTimeoutError,
 )
+from backend.rag import RetrievalError
 from backend.schemas import ChatRequest, ChatResponse
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
         )
 
     try:
-        result = chatbot(question)
+        filters = {name: getattr(request, name) for name in ("sources", "page_types", "document_id", "property_name") if getattr(request, name) is not None}
+        result = chatbot(question, **filters)
+    except RetrievalError:
+        logger.exception("Source retrieval is unavailable")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Source retrieval is temporarily unavailable. Please check the configured collection and local model.",
+        ) from None
     except LLMRateLimitError as exc:
         logger.warning("Groq rate limit exceeded: %s", exc)
         raise HTTPException(
@@ -71,7 +79,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Groq API error.",
         )
-    except Exception:  # safety net for unexpected errors
+    except Exception:
         logger.exception("Unexpected error in chat endpoint")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -7,7 +9,10 @@ class Source(BaseModel):
     """A retrieved property source reference."""
 
     title: str = Field(description="Property title")
-    url: str = Field(description="Canonical source URL")
+    url: str = Field(description="Original source URL")
+    source: Literal["darglobal", "wasalt"] | None = None
+    page_type: str | None = None
+    document_id: str | None = None
 
 
 class ChatRequest(BaseModel):
@@ -20,6 +25,10 @@ class ChatRequest(BaseModel):
         description="Property-related question to ask the AI agent",
         examples=["Tell me about Albert Hall Mansions."],
     )
+    sources: list[Literal["darglobal", "wasalt"]] | None = Field(default=None, min_length=1)
+    page_types: list[Literal["company", "project_directory", "individual_property", "auction"]] | None = Field(default=None, min_length=1)
+    document_id: str | None = None
+    property_name: str | None = None
 
 
 class ChatResponse(BaseModel):

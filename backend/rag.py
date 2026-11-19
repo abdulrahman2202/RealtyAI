@@ -1,240 +1,133 @@
+"""Reusable multi-source RAG API; normal reads never create or ingest a collection."""
+
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 
 import chromadb
-from sentence_transformers import SentenceTransformer
+from chromadb.errors import ChromaError, NotFoundError
 
-from typing import Any, Optional
+from backend.data_access import (
+    DEFAULT_POLICY,
+    PAGE_TYPES,
+    SourcePolicy,
+    normalize_source,
+)
+from backend.document_preparation import prepare_documents
+from backend.embedding import EmbeddingProfile, cached_profile
+from backend.indexing import IngestionApproval, index_chunks
+from backend.models import ExtractedRecord
+from backend.retrieval import catalog, hybrid_search, invalidate_catalog
 
-from backend.models import DarGlobalProperty, WasaltProperty, ExtractedRecord
+COLLECTION_NAME = "realtyai_properties"
+_chroma_client = None
+_collection = None
+_encoder = None
+_client_target = None
 
 
-# ── Module-level singletons (created on first use) ──────────────
-
-_chroma_client: Optional[chromadb.Client] = None
-_collection: Optional[chromadb.Collection] = None
-_encoder: Optional[SentenceTransformer] = None
+class RetrievalError(RuntimeError):
+    """Search/configuration failed; this is distinct from no matching source evidence."""
 
 
-def _get_client() -> chromadb.Client:
-    """Lazy-initialise the ChromaDB client and collection."""
-    global _chroma_client, _collection, _encoder
-
-    if _chroma_client is not None:
+def _get_client():
+    """Open only an existing collection; never create directories, collections, or vectors."""
+    global _chroma_client, _collection, _client_target
+    name = os.getenv("REALTYAI_COLLECTION_NAME", COLLECTION_NAME)
+    directory = Path(os.getenv("REALTYAI_VECTOR_DB_DIR") or Path(__file__).resolve().parents[1] / "data" / "vector_db").resolve()
+    target = (str(directory), name)
+    if _client_target is not None and _client_target != target:
+        _chroma_client = _collection = None
+        invalidate_catalog()
+    _client_target = target
+    if _collection is not None:
         return _chroma_client
-
-    # Allow overriding the vector DB directory via environment variable
-    # (useful for test isolation without affecting the development database).
-    env_db_dir = os.getenv("REALTYAI_VECTOR_DB_DIR")
-    if env_db_dir:
-        vector_db_dir = Path(env_db_dir)
-    else:
-        # Persist under the project data/vector_db directory
-        vector_db_dir = Path(__file__).resolve().parent.parent / "data" / "vector_db"
-    vector_db_dir.mkdir(parents=True, exist_ok=True)
-
-    _chroma_client = chromadb.PersistentClient(
-        path=str(vector_db_dir),
-        settings=chromadb.Settings(anonymized_telemetry=False),
-    )
-
-    # Create (or reuse) the collection
-    _collection = _chroma_client.get_or_create_collection(
-        name="realtyai_properties",
-        metadata={"hnw_distance_method": "cosine"},
-    )
-
-    _encoder = SentenceTransformer("all-MiniLM-L6-v2")
-
+    if not (directory / "chroma.sqlite3").is_file():
+        if name != COLLECTION_NAME:
+            raise RetrievalError("The configured source collection has not been indexed.")
+        return None
+    if _chroma_client is None:
+        _chroma_client = chromadb.PersistentClient(path=str(directory), settings=chromadb.Settings(anonymized_telemetry=False))
+    try:
+        _collection = _chroma_client.get_collection(name, embedding_function=None)
+    except NotFoundError as error:
+        _collection = None
+        if name != COLLECTION_NAME:
+            raise RetrievalError("The configured source collection is missing.") from error
+    if _collection is not None and name != COLLECTION_NAME:
+        metadata = _collection.metadata or {}
+        if any(metadata.get(key) != value for key, value in cached_profile().provenance().items()):
+            _collection = None
+            raise RetrievalError("The configured collection has incompatible embedding provenance.")
     return _chroma_client
 
 
-def index_records(records: list[dict[Any, Any]]) -> None:
-    """Index a list of property record dicts into ChromaDB.
-
-    Each record should have at minimum ``title`` and ``description`` fields,
-    plus a ``url`` for source tracking.
-
-    Records with missing title or URL are skipped.
-    """
-    _ = _get_client()  # ensure initialised
-
-    # Normalise and prepare texts for embedding
-    ids: list[str] = []
-    documents: list[str] = []
-    metadatas: list[dict[str, Any]] = []
-
-    for rec in records:
-        # Skip records without a title or URL
-        title = rec.get("title") or ""
-        url = rec.get("url", "")
-        if not title.strip() or not url.strip():
-            continue
-
-        # Generate a stable ID from the source URL
-        rid = url.replace("https://", "").replace("http://", "").replace("/", "_")
-        ids.append(rid)
-
-        # Normalise title: strip trailing ", Residence X & Y" etc.
-        norm_title = title
-        if ", " in norm_title:
-            potential_short = norm_title.rsplit(", ", 1)[0]
-            if len(potential_short) < len(norm_title) - 3:
-                norm_title = potential_short
-        description = rec.get("description") or ""
-        doc_text = f"{norm_title}. {description}".strip()
-        if not doc_text:
-            doc_text = title
-        documents.append(doc_text)
-
-        # Store metadata including source, url, title, and description.
-        # ChromaDB 1.5.9 with embeddings supplied accepts str metadata values.
-        metadata: dict[str, Any] = {
-            "source": rec.get("source", ""),
-            "url": url,
-            "title": norm_title,  # normalised title
-            "description": description,
-        }
-        metadatas.append(metadata)
-
-    if not ids:
-        # Nothing to index
-        return
-
-    # Compute embeddings for all documents (required for metadata to be
-    # accepted by ChromaDB's Rust bindings in this version)
-    embeddings = _encoder.encode(documents, convert_to_numpy=True)
-
-    # Add to ChromaDB collection
-    _collection.add(
-        ids=ids,
-        documents=documents,
-        metadatas=metadatas,
-        embeddings=embeddings,
-    )
+def _resolve_collection(collection=None):
+    if collection is not None:
+        return collection
+    _get_client()
+    return _collection
 
 
-def search(query: str, k: int = 4) -> list[dict[str, Any]]:
-    """Search the vector store for the top-k most similar property records.
+def index_records(
+    records: list[ExtractedRecord | dict], *, collection=None, dry_run: bool = True,
+    approval: IngestionApproval | None = None, profile: EmbeddingProfile | None = None,
+    encoder=None, policy: SourcePolicy = DEFAULT_POLICY, manifest_path: Path | None = None,
+    batch_size: int = 64, lock_directory: Path | None = None,
+) -> dict:
+    """Prepare nested records and return a review manifest unless execution is explicitly approved."""
+    chunks = prepare_documents(records, profile=profile, policy=policy)
+    manifest = index_chunks(chunks, collection=collection, dry_run=dry_run, approval=approval,
+        profile=profile, encoder=encoder, policy=policy, manifest_path=manifest_path,
+        batch_size=batch_size, lock_directory=lock_directory)
+    if collection is not None and not dry_run:
+        invalidate_catalog(str(collection.id))
+    return manifest
 
-    Args:
-        query: The user's natural language question or search term.
-        k: Number of results to return (default 4).
 
-    Returns:
-        A list of dicts, each containing:
-            - ``id``: the ChromaDB internal ID (derived from URL)
-            - ``document``: the combined title+description text
-            - ``metadata``: all stored metadata fields including ``source``, ``url``, and ``title``
-            - ``distance``: cosine distance from the query embedding (range [0,2],
-              normalised to [0,1] for consistency)
-    """
-    _ = _get_client()  # ensure initialised
-
-    if not query or not query.strip():
+def search(
+    query: str, k: int = 4, *, source: str | None = None, sources: list[str] | None = None,
+    page_types: list[str] | None = None, property_name: str | None = None, document_id: str | None = None,
+    collection=None, encoder=None, policy: SourcePolicy = DEFAULT_POLICY, max_distance: float | None = None,
+) -> list[dict]:
+    """Hybrid retrieval across both sources, retaining original Chroma distances."""
+    if not query or not query.strip() or sources == []:
         return []
+    if not 1 <= k <= 50:
+        raise ValueError("Retrieval k must be between 1 and 50.")
+    if source is not None:
+        if sources is not None:
+            raise ValueError("Specify source or sources, not both.")
+        sources = [source]
+    if sources is not None:
+        sources = list(dict.fromkeys(normalize_source(name) for name in sources))
+    if page_types is not None and any(page_type not in PAGE_TYPES for page_type in page_types):
+        raise ValueError("Unsupported page-type filter.")
+    if max_distance is not None and max_distance < 0:
+        raise ValueError("A raw distance cutoff cannot be negative.")
+    try:
+        target = _resolve_collection(collection)
+        if target is None or target.count() == 0:
+            return []
+        return hybrid_search(target, query, encoder=encoder or _encoder, k=k, sources=sources,
+            page_types=page_types, property_name=property_name, parent_id=document_id,
+            policy=policy, max_distance=max_distance)
+    except (ChromaError, OSError) as error:
+        raise RetrievalError("Source retrieval failed; please retry after checking the database and local model.") from error
 
-    # Embed the query
-    query_embedding = _encoder.encode(query.strip(), convert_to_numpy=True)
 
-    # Retrieve top-k results
-    results = _collection.query(
-        query_embeddings=[query_embedding],
-        n_results=k,
-    )
-
-    # Format results
-    formatted: list[dict[str, Any]] = []
-    documents = results.get("documents", [[]])[0]
-    metadatas = results.get("metadatas", [[]])[0]
-    ids = results.get("ids", [[]])[0]
-    distances = results.get("distances", [[]])[0]
-
-    for i in range(len(ids)):
-        meta = metadatas[i] if i < len(metadatas) else {}
-        dist = distances[i] if i < len(distances) else 1.0
-        # ChromaDB cosine distance ranges [0, 2]; normalise to [0,1] for consistency
-        norm_dist = float(dist) / 2.0 if float(dist) > 1.0 else float(dist)
-        formatted.append(
-            {
-                "id": ids[i] if i < len(ids) else None,
-                "document": documents[i] if i < len(documents) else "",
-                "metadata": meta,
-                "distance": norm_dist,
-            }
-        )
-
-    return formatted
+def get_all_records(*, collection=None, sources: list[str] | None = None, policy: SourcePolicy = DEFAULT_POLICY) -> list[dict]:
+    """Read existing authorized records without implicit initialization or indexing."""
+    target = _resolve_collection(collection)
+    if target is None or target.count() == 0:
+        return []
+    return list(catalog(target, sources, policy))
 
 
 def clear_collection() -> None:
-    """Reset the ChromaDB collection, removing all indexed records.
-
-    Useful for test isolation or starting fresh.
-    """
-    global _collection, _chroma_client, _encoder
-    # Ensure a client exists so we can delete the collection even in a fresh
-    # process where the module-level singletons are still None.
-    _ = _get_client()
-    if _collection is not None:
-        try:
-            _chroma_client.delete_collection(name=_collection.name)
-        except (chromadb.errors.NotFoundError, chromadb.errors.ChromaError):
-            pass
-    _collection = None
-    _chroma_client = None
-    _encoder = None
-
-    # Re-initialise an empty collection
-    _get_client()
-
-
-def get_all_records() -> list[dict[str, Any]]:
-    """Retrieve all indexed property records from the vector store."""
-    _ = _get_client()  # ensure initialised
-
-    results = _collection.get()
-    records: list[dict[str, Any]] = []
-
-    ids = results.get("ids", [])
-    metadatas = results.get("metadatas", [])
-    documents = results.get("documents", [])
-
-    for i in range(len(ids)):
-        records.append(
-            {
-                "id": ids[i] if i < len(ids) else None,
-                "document": documents[i] if i < len(documents) else "",
-                "metadata": metadatas[i] if i < len(metadatas) else {},
-            }
-        )
-
-    return records
+    raise PermissionError("Collection clearing is disabled; existing RealtyAI records must be preserved.")
 
 
 def init_from_processed_data() -> None:
-    """Load the two DarGlobal processed JSON records and index them.
-
-    This is the convenience entry-point used by the test suite and
-    any initialization script.
-    """
-    processed_dir = (
-        Path(__file__).resolve().parent.parent / "data" / "processed" / "darglobal"
-    )
-
-    records: list[dict[str, Any]] = []
-
-    if processed_dir.is_dir():
-        for json_file in sorted(processed_dir.glob("*.json")):
-            try:
-                data = json.loads(json_file.read_text(encoding="utf-8"))
-                records.append(data)
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                # Skip malformed JSON; do not block initialization
-                continue
-
-    if records:
-        index_records(records)
+    raise PermissionError("Implicit ingestion is disabled. Use the CSV review and explicitly approved indexing workflow.")

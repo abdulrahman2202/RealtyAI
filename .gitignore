@@ -49,3 +49,4 @@ htmlcov/
 
 # Project-specific generated files
 data/vector_db/**
+data/vector_db_multisource/

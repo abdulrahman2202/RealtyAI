@@ -85,3 +85,15 @@ def test_chat_endpoint_handles_chatbot_failure_safely():
         "groq" not in data["detail"].lower()
         or "unable to connect" in data["detail"].lower()
     )
+
+
+def test_chat_endpoint_accepts_multi_source_filters():
+    with patch("backend.api.routes.chatbot", return_value=MOCK_RESULT) as handler:
+        response = client.post("/api/chat", json={"question": "Compare sources", "sources": ["darglobal", "wasalt"], "page_types": ["company"]})
+    assert response.status_code == 200
+    handler.assert_called_once_with("Compare sources", sources=["darglobal", "wasalt"], page_types=["company"])
+
+
+def test_chat_endpoint_rejects_unknown_source_filter():
+    response = client.post("/api/chat", json={"question": "Information", "sources": ["unrecognized"]})
+    assert response.status_code == 422

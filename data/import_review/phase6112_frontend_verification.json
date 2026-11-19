@@ -1,0 +1,41 @@
+{
+  "questions": [
+    {
+      "question": "What services does Wasalt provide?",
+      "http_status": 200,
+      "answer": "- AI‑powered property search platform (Wasalt Search) that lists verified homes, projects and master‑plans — https://wasalt.sa/en/corporate?utm_source=chatgpt.com  \n- Online and hybrid real‑estate auctions (Wasalt Auctions) for private sellers and Infath‑partnered assets — https://wasalt.sa/en/corporate?utm_source=chatgpt.com  \n- Dedicated sections for projects and master‑plans, allowing investors to reserve plots online — https://wasalt.sa/en/corporate?utm_source=chatgpt.com  \n- Mobile apps (Wasalt app and Wasalt Business app) for buying, selling, renting and connecting directly with brokers — https://wasalt.sa/en  \n- “Matchmaker” tool that matches live listings with potential leads — https://wasalt.sa/en/corporate?utm_source=chatgpt.com  \n- Full‑service real‑estate ecosystem (search, listings, auctions, broker connections, investment projects) licensed by REGA and the Ministry of Tourism — https://wasalt.sa/en",
+      "displayed_text": "AI‑powered property search platform (Wasalt Search) that lists verified homes, projects and master‑plans — https://wasalt.sa/en/corporate?utm_source=chatgpt.com\nOnline and hybrid real‑estate auctions (Wasalt Auctions) for private sellers and Infath‑partnered assets — https://wasalt.sa/en/corporate?utm_source=chatgpt.com\nDedicated sections for projects and master‑plans, allowing investors to reserve plots online — https://wasalt.sa/en/corporate?utm_source=chatgpt.com\nMobile apps (Wasalt app and Wasalt Business app) for buying, selling, renting and connecting directly with brokers — https://wasalt.sa/en\n“Matchmaker” tool that matches live listings with potential leads — https://wasalt.sa/en/corporate?utm_source=chatgpt.com\nFull‑service real‑estate ecosystem (search, listings, auctions, broker connections, investment projects) licensed by REGA and the Ministry of Tourism — https://wasalt.sa/en",
+      "source_links": [
+        {
+          "title": "Wasalt Real Estate Services",
+          "url": "https://wasalt.sa/en/corporate?utm_source=chatgpt.com"
+        },
+        {
+          "title": "Properties For Sale and Rent in Saudi Arabia | Wasalt",
+          "url": "https://wasalt.sa/en"
+        }
+      ],
+      "correct_citations": true,
+      "useful_answer": true,
+      "expected_facts_present": true,
+      "new_data_citations": true
+    },
+    {
+      "question": "What information is available about THE ALBERT HALL MANSION?",
+      "http_status": 200,
+      "answer": "- The Albert Hall Mansion is featured in DarGlobal’s Premiere Edition Collection of million‑dollar homes 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】  \n- It enjoys a prestigious address directly overlooking the iconic Royal Albert Hall in South Kensington, with easy access to Hyde Park, the Victoria and Albert Museum, Knightsbridge shopping, fine dining and cultural attractions 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】  \n- The building is a historic Victorian residential complex designed by architect Richard Norman Shaw; construction ran from 1879 to 1886 and it exemplifies the Queen Anne revival style with red‑brick façade, ornate terracotta details and grand gables 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】  \n- It was among London’s first luxury apartments, originally serving Victorian elites and later housing notable figures, symbolising prestige and timeless elegance 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】  \n- The property includes residences 7 & 8 within Albert Hall Mansions; detailed floor‑plan information is currently unavailable and interested parties are invited to join a waiting list 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】",
+      "displayed_text": "The Albert Hall Mansion is featured in DarGlobal’s Premiere Edition Collection of million‑dollar homes 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】\nIt enjoys a prestigious address directly overlooking the iconic Royal Albert Hall in South Kensington, with easy access to Hyde Park, the Victoria and Albert Museum, Knightsbridge shopping, fine dining and cultural attractions 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】\nThe building is a historic Victorian residential complex designed by architect Richard Norman Shaw; construction ran from 1879 to 1886 and it exemplifies the Queen Anne revival style with red‑brick façade, ornate terracotta details and grand gables 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】\nIt was among London’s first luxury apartments, originally serving Victorian elites and later housing notable figures, symbolising prestige and timeless elegance 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】\nThe property includes residences 7 & 8 within Albert Hall Mansions; detailed floor‑plan information is currently unavailable and interested parties are invited to join a waiting list 【https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com】",
+      "source_links": [
+        {
+          "title": "THE ALBERT HALL MANSION",
+          "url": "https://darglobal.co.uk/one-of-one/THE-ALBERT-HALL-MANSION?utm_source=chatgpt.com"
+        }
+      ],
+      "correct_citations": true,
+      "useful_answer": true,
+      "expected_facts_present": true,
+      "new_data_citations": true
+    }
+  ],
+  "browser_errors": []
+}

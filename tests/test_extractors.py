@@ -4,11 +4,13 @@ No live website requests are made. All data is extracted from fixtures.
 """
 
 from pathlib import Path
+from unittest.mock import Mock
+
+import httpx
 
 from backend.extractors.darglobal import DarGlobalExtractor
 from backend.extractors.wasalt import WasaltExtractor
-from backend.models import DarGlobalProperty, ExtractedRecord, WasaltProperty
-
+from backend.models import DarGlobalProperty, WasaltProperty
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -236,22 +238,22 @@ def test_darglobal_model_accepts_valid_data():
 # ── Crawler tests ────────────────────────────────────────────
 
 
-def test_crawler_dry_run_mode():
+def test_crawler_dry_run_mode(tmp_path):
     """Test crawler dry-run mode flag."""
     from backend.crawler import BaseCrawler
 
-    crawler = BaseCrawler(dry_run=True)
+    crawler = BaseCrawler(dry_run=True, output_dir_dg=tmp_path / "darglobal", output_dir_ws=tmp_path / "wasalt")
     assert crawler.dry_run is True
-    crawler2 = BaseCrawler(dry_run=False)
+    crawler2 = BaseCrawler(dry_run=False, output_dir_dg=tmp_path / "darglobal", output_dir_ws=tmp_path / "wasalt")
     assert crawler2.dry_run is False
     print("  PASS: test_crawler_dry_run_mode")
 
 
-def test_crawler_deduplication():
+def test_crawler_deduplication(tmp_path):
     """Test crawler skips duplicate URLs."""
     from backend.crawler import BaseCrawler, extract_darglobal
 
-    crawler = BaseCrawler(dry_run=True)
+    crawler = BaseCrawler(dry_run=True, output_dir_dg=tmp_path / "darglobal", output_dir_ws=tmp_path / "wasalt")
 
     # Same URL twice - second should be None (skipped)
     crawler.crawl_url(
@@ -270,11 +272,12 @@ def test_crawler_deduplication():
     print("  PASS: test_crawler_deduplication")
 
 
-def test_crawler_produces_json_output():
+def test_crawler_produces_json_output(tmp_path, monkeypatch):
     """Test crawler can save JSON output in non-dry-run mode."""
     from backend.crawler import BaseCrawler, extract_darglobal
 
-    crawler = BaseCrawler(dry_run=False)
+    crawler = BaseCrawler(dry_run=False, output_dir_dg=tmp_path / "darglobal", output_dir_ws=tmp_path / "wasalt")
+    monkeypatch.setattr(crawler.throttled_client, "get", Mock(return_value=httpx.Response(200, text=_load_fixture("darglobal_top_of_astera.html"))))
 
     record = crawler.crawl_url(
         "https://darglobal.co.uk/one-of-one/top-of-the-astera",
@@ -282,16 +285,15 @@ def test_crawler_produces_json_output():
         crawler.output_dir_dg,
     )
 
-    # In non-dry run mode, check JSON file was created
+    assert record is not None
+    # Only the isolated test output is read or written.
     import json
-    from pathlib import Path
 
     json_files = list(crawler.output_dir_dg.glob("*.json"))
-    if json_files:
-        # Validate JSON content
-        saved_data = json.loads(json_files[0].read_text())
-        assert "source" in saved_data
-        assert "url" in saved_data
+    assert len(json_files) == 1
+    saved_data = json.loads(json_files[0].read_text(encoding="utf-8"))
+    assert "source" in saved_data
+    assert "url" in saved_data
     print("  PASS: test_crawler_produces_json_output")
 
 

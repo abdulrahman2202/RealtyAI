@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "collection_name": "realtyai_multisource_v1",
+  "collection_id": "51cdb05c-3ee9-4b04-b85c-71cbf168ff0d",
+  "database_dir": "C:\\Programming\\RealtyAI\\data\\vector_db_multisource",
+  "chunk_count": 84,
+  "source_counts": {
+    "darglobal": 46,
+    "wasalt": 38
+  },
+  "searchable_document_count": 12,
+  "distance_metric": "cosine",
+  "embedding_provenance": {
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "embedding_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "embedding_dimension": 384,
+    "embedding_max_sequence_length": 256
+  },
+  "review_sha256": "549d281fb310a485d12ad90d81679052ab673926ed164caed8f133a11a67bdc4",
+  "all_reviewed_ids_present": true,
+  "all_text_and_metadata_exact": true,
+  "original_urls_and_document_identity_verified": true,
+  "all_vectors_384_finite_normalized": true,
+  "identical_chunks": 84,
+  "additional_chunks_pending": 0,
+  "conflicts": [],
+  "legacy_files_unchanged": true,
+  "legacy_file_count": 9
+}
