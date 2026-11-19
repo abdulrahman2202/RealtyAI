@@ -4,10 +4,14 @@
 
 This project builds the data collection and processing foundation for RealtyAI, an AI-powered real estate information assistant for DarGlobal (https://darglobal.co.uk/) and Wasalt (https://wasalt.sa/en/).
 
-Two phases are complete:
+Five phases are complete:
 
 - **Phase 1**: Multi-source crawler foundation (httpx + BeautifulSoup, Pydantic schemas, extractors, tests)
 - **Phase 2**: Data processing and quality (TXT file parsing, normalization, deduplication, JSON output, validation reports)
+- **Phase 3**: RAG foundation (ChromaDB vector store, SentenceTransformers embeddings, semantic search)
+- **Phase 4**: AI agent integration (Groq LLM via OpenAI SDK, RAG + Groq chatbot, manual end-to-end test)
+- **Phase 5**: FastAPI backend (REST API: GET /health, POST /api/chat, CORS, error handling, automated tests)
+- **Phase 6**: Next.js frontend (chat UI, sidebar, property sources, responsive design, API integration)
 
 ## Project Structure
 
@@ -30,17 +34,32 @@ RealtyAI/
 │   │   ├── darglobal/         # 2 JSON records + validation report
 │   │   └── wasalt/            # Empty (populate via processor or crawler)
 │   └── vector_db/             # Future: vector database for RAG
+├── frontend/                    # Next.js frontend application (Phase 6)
+│   ├── .env.local               # Frontend environment variables
+│   ├── package.json             # Node.js dependencies and scripts
+│   ├── tailwind.config.js       # Tailwind CSS configuration
+│   ├── postcss.config.js        # PostCSS configuration
+│   ├── tsconfig.json            # TypeScript configuration
+│   ├── next.config.js           # Next.js configuration
+│   ├── .eslintrc.json           # ESLint configuration
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── layout.tsx       # Root layout with metadata
+│   │   │   ├── page.tsx         # Main page (renders ChatWindow)
+│   │   │   └── globals.css      # Global styles and CSS variables
+│   │   ├── components/
+│   │   │   ├── Sidebar.tsx      # Collapsible sidebar with conversation history
+│   │   │   ├── SidebarProvider.tsx  # Client-side state provider for sidebar
+│   │   │   ├── Header.tsx       # Top navigation header
+│   │   │   ├── ChatWindow.tsx   # Main chat area with message list
+│   │   │   ├── ChatMessage.tsx  # Message bubbles, input, loading, error states
+│   │   │   ├── SourceCard.tsx   # Clickable property source cards
+│   │   │   └── WelcomeScreen.tsx  # Welcome screen with suggested questions
+│   │   ├── lib/
+│   │   │   └── api.ts           # API client (chat, health)
+│   │   └── types/
+│   │       └── index.ts         # TypeScript type definitions
 ├── tests/
-│   ├── __init__.py
-│   ├── fixtures/              # Local HTML fixtures for testing (no live requests)
-│   │   ├── darglobal_top_of_astera.html
-│   │   ├── darglobal_one_of_one_trump_penthouse.html
-│   │   ├── wasalt_detail_villa.html
-│   │   └── wasalt_listing_page.html
-│   ├── test_extractors.py     # Test suite (15 passing tests, no live website requests)
-│   └── run_tests.py           # Test runner script
-├── README.md                  # This file
-└── frontend/                  # Frontend application (not yet built)
 ```
 
 ## Requirements (All Met)
@@ -360,3 +379,121 @@ C:\Programming\RealtyAI\.venv\Scripts\python.exe -m ruff format --check .
 ### Dependencies Added
 
 - `fastapi==0.115.0` (uvicorn was already present)
+
+## Phase 6: Next.js Frontend Development
+
+### Overview
+
+Phase 6 adds a professional, premium Next.js frontend that connects to the
+FastAPI backend, enabling users to ask property-related questions and receive
+AI-generated answers with source references through a chat interface.
+
+### Technology Stack
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Next.js | 14.2.3 | React framework with App Router |
+| React | 18.3.1 | UI library |
+| TypeScript | 5.4.5 | Type safety |
+| Tailwind CSS | 3.4.3 | Styling |
+| Lucide React | 0.344.0 | Icons |
+
+### Design System
+
+- **Primary teal**: `#12544f`
+- **Warm yellow**: `#FDF4D2`
+- **Orange accent**: `#FF9100`
+- **Warm ivory and neutral backgrounds**
+- Editorial typography with serif headings and sans-serif body
+- Fully responsive (desktop, tablet, mobile)
+
+### Components
+
+| Component | Purpose |
+|-----------|---------|
+| `Sidebar` | Collapsible sidebar with RealtyAI logo, new conversation button, conversation history |
+| `SidebarProvider` | Client-side state provider for sidebar collapse state and conversations |
+| `Header` | Top navigation header with user profile |
+| `ChatWindow` | Main chat area with message list, welcome screen, auto-scroll |
+| `ChatMessage` | User/AI message bubbles with source references, timestamps |
+| `ChatInput` | Multiline input with send button, Enter/Shift+Enter handling |
+| `SourceCard` | Clickable property source cards with title and URL |
+| `WelcomeScreen` | Welcome screen with suggested property questions |
+
+### API Integration
+
+- **Endpoint**: `POST /api/chat` (FastAPI backend)
+- **Backend URL**: `http://127.0.0.1:8000` (configurable via `NEXT_PUBLIC_API_URL`)
+- **Request**: `{ "question": "string" }`
+- **Response**: `{ "answer": "string", "sources": [{ "title", "url" }], "success": true }`
+- Handles network errors, HTTP errors, loading states, and empty question prevention
+
+### Installation
+
+From the `frontend/` directory:
+
+```powershell
+npm install
+```
+
+### Environment Configuration
+
+Create `frontend/.env.local`:
+
+```dotenv
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+### Run the Frontend
+
+From the `frontend/` directory:
+
+```powershell
+npm run dev
+```
+
+Then open `http://localhost:3000`.
+
+For production build:
+
+```powershell
+npm run build
+npm start
+```
+
+### Local Development Workflow
+
+1. Start the FastAPI backend:
+   ```powershell
+   C:\Programming\RealtyAI\.venv\Scripts\python.exe -m uvicorn backend.main:app --reload
+   ```
+
+2. Start the Next.js frontend:
+   ```powershell
+   npm run dev
+   ```
+
+3. Open `http://localhost:3000` in your browser.
+
+4. Type a property question (e.g., "Tell me about Albert Hall Mansions.") and press Enter.
+
+5. View the AI-generated answer with clickable source property references.
+
+### Verification
+
+```powershell
+# TypeScript type check
+npx tsc --noEmit
+
+# Production build
+npm run build
+```
+
+### Backend Tests (No Regression)
+
+```powershell
+C:\Programming\RealtyAI\.venv\Scripts\python.exe -m pytest tests/ -v
+```
+
+All 33 backend tests pass with no regression from the frontend addition.
+
