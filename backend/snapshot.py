@@ -23,6 +23,8 @@ from http.client import HTTPException
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 
+from backend.recovery_diagnostics import diagnostic_stage, preserve_diagnostic
+
 COLLECTION = "realtyai_multisource_v1"
 COLLECTION_ID = "51cdb05c-3ee9-4b04-b85c-71cbf168ff0d"
 REVIEW_SHA256 = "549d281fb310a485d12ad90d81679052ab673926ed164caed8f133a11a67bdc4"
@@ -97,6 +99,7 @@ def database_records(directory: Path) -> dict:
     return result
 
 
+@diagnostic_stage("manifest_validation")
 def validate_manifest(data: bytes) -> dict:
     if len(data) > MAX_MANIFEST:
         raise SnapshotError("Snapshot manifest exceeds its limit.")
@@ -119,6 +122,7 @@ def validate_manifest(data: bytes) -> dict:
     return manifest
 
 
+@diagnostic_stage("database_validation")
 def verify_database(directory: Path, manifest: dict) -> None:
     if importlib.metadata.version("chromadb") != manifest["chroma_version"]:
         raise SnapshotError("Snapshot Chroma version differs.")
@@ -144,46 +148,55 @@ class _BoundedReader:
         return data
 
 
+@diagnostic_stage("archive_extraction")
 def restore_archive(archive: Path, target: Path, archive_hash: str, manifest_hash: str) -> dict:
     """Stage, fully verify, and promote without overwriting a populated target."""
-    if target.is_symlink() or (target.exists() and (not target.is_dir() or any(target.iterdir()))):
-        raise SnapshotError("An existing non-empty database will not be overwritten.")
-    if archive.stat().st_size > MAX_DOWNLOAD or digest(archive) != archive_hash:
-        raise SnapshotError("Snapshot archive digest/size differs.")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix=".snapshot-stage-", dir=target.parent) as stage_name:
+    with diagnostic_stage("target_directory"):
+        if target.is_symlink() or (target.exists() and (not target.is_dir() or any(target.iterdir()))):
+            raise SnapshotError("An existing non-empty database will not be overwritten.")
+    with diagnostic_stage("archive_checksum"):
+        if archive.stat().st_size > MAX_DOWNLOAD or digest(archive) != archive_hash:
+            raise SnapshotError("Snapshot archive digest/size differs.")
+    with diagnostic_stage("filesystem_staging"):
+        target.parent.mkdir(parents=True, exist_ok=True)
+        staging = tempfile.TemporaryDirectory(prefix=".snapshot-stage-", dir=target.parent)
+    with staging as stage_name:
         stage = Path(stage_name)
-        with gzip.open(archive, "rb") as compressed, tarfile.open(fileobj=_BoundedReader(compressed), mode="r|") as members:
-            iterator = iter(members)
-            first = next(iterator, None)
-            if first is None or first.name != MANIFEST_NAME or not first.isfile() or first.size > MAX_MANIFEST:
-                raise SnapshotError("Snapshot manifest must be the first regular file.")
-            manifest_data = members.extractfile(first).read(MAX_MANIFEST + 1)
-            if hashlib.sha256(manifest_data).hexdigest() != manifest_hash:
-                raise SnapshotError("Snapshot manifest digest differs.")
+        with diagnostic_stage("archive_header"), gzip.open(archive, "rb") as compressed, tarfile.open(fileobj=_BoundedReader(compressed), mode="r|") as members:
+            with diagnostic_stage("archive_header"):
+                iterator = iter(members)
+                first = next(iterator, None)
+                if first is None or first.name != MANIFEST_NAME or not first.isfile() or first.size > MAX_MANIFEST:
+                    raise SnapshotError("Snapshot manifest must be the first regular file.")
+                manifest_data = members.extractfile(first).read(MAX_MANIFEST + 1)
+            with diagnostic_stage("manifest_checksum"):
+                if hashlib.sha256(manifest_data).hexdigest() != manifest_hash:
+                    raise SnapshotError("Snapshot manifest digest differs.")
             manifest = validate_manifest(manifest_data)
-            seen = set()
-            for member in iterator:
-                name = safe_path(member.name)
-                if name in seen or name not in manifest["files"] or not member.isfile() or member.linkname:
-                    raise SnapshotError("Unexpected, duplicate or linked snapshot file.")
-                expected = manifest["files"][name]
-                if member.size != expected["size"]:
-                    raise SnapshotError("Snapshot file size differs.")
-                destination = stage / name
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                with members.extractfile(member) as incoming, destination.open("xb") as outgoing:
-                    shutil.copyfileobj(incoming, outgoing, length=64 * 1024)
-                if destination.stat().st_size != expected["size"] or digest(destination) != expected["sha256"]:
-                    raise SnapshotError("Snapshot file digest differs.")
-                seen.add(name)
-            if seen != set(manifest["files"]):
-                raise SnapshotError("Snapshot storage files are incomplete.")
+            with diagnostic_stage("archive_extraction"):
+                seen = set()
+                for member in iterator:
+                    name = safe_path(member.name)
+                    if name in seen or name not in manifest["files"] or not member.isfile() or member.linkname:
+                        raise SnapshotError("Unexpected, duplicate or linked snapshot file.")
+                    expected = manifest["files"][name]
+                    if member.size != expected["size"]:
+                        raise SnapshotError("Snapshot file size differs.")
+                    destination = stage / name
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    with members.extractfile(member) as incoming, destination.open("xb") as outgoing:
+                        shutil.copyfileobj(incoming, outgoing, length=64 * 1024)
+                    if destination.stat().st_size != expected["size"] or digest(destination) != expected["sha256"]:
+                        raise SnapshotError("Snapshot file digest differs.")
+                    seen.add(name)
+                if seen != set(manifest["files"]):
+                    raise SnapshotError("Snapshot storage files are incomplete.")
         (stage / MANIFEST_NAME).write_bytes(manifest_data)
         verify_database(stage, manifest)
-        if target.exists():
-            target.rmdir()  # fails if any concurrent writer populated it
-        stage.rename(target)
+        with diagnostic_stage("filesystem_promotion"):
+            if target.exists():
+                target.rmdir()  # fails if any concurrent writer populated it
+            stage.rename(target)
     return {"status": "recovered", "collection_id": COLLECTION_ID, "chunks": 84}
 
 
@@ -201,6 +214,7 @@ class RecoveryConfig:
     archive_hash: str
     manifest_hash: str
 
+    @diagnostic_stage("configuration")
     def validate(self) -> None:
         endpoint, blob = urlsplit(self.endpoint), urlsplit(self.blob_url)
         if (endpoint.scheme != "https" or not (endpoint.hostname or "").endswith(".vercel.app")
@@ -217,37 +231,48 @@ class RecoveryConfig:
             raise SnapshotError("Pinned snapshot digests are required.")
 
 
+@diagnostic_stage("snapshot_recovery")
 def recover(config: RecoveryConfig, *, opener=None) -> dict:
     config.validate()
     target = config.target
-    if target.is_symlink():
-        raise SnapshotError("A linked database target is not allowed.")
-    if target.exists() and any(target.iterdir()):
-        manifest_path = target / MANIFEST_NAME
-        if not manifest_path.is_file() or manifest_path.is_symlink() or digest(manifest_path) != config.manifest_hash:
-            raise SnapshotError("The existing database has no approved snapshot manifest; it is preserved.")
-        verify_database(target, validate_manifest(manifest_path.read_bytes()))
-        return {"status": "existing_verified", "collection_id": COLLECTION_ID, "chunks": 84}
+    with diagnostic_stage("existing_database_validation"):
+        if target.is_symlink():
+            raise SnapshotError("A linked database target is not allowed.")
+        if target.exists() and any(target.iterdir()):
+            manifest_path = target / MANIFEST_NAME
+            if not manifest_path.is_file() or manifest_path.is_symlink() or digest(manifest_path) != config.manifest_hash:
+                raise SnapshotError("The existing database has no approved snapshot manifest; it is preserved.")
+            verify_database(target, validate_manifest(manifest_path.read_bytes()))
+            return {"status": "existing_verified", "collection_id": COLLECTION_ID, "chunks": 84}
     opener = opener or urllib.request.build_opener(_NoRedirect())
     request = urllib.request.Request(config.endpoint, headers={"Authorization": "Bearer " + config.token})
-    with opener.open(request, timeout=20) as response:
+    with diagnostic_stage("broker_request"), opener.open(request, timeout=20) as response:
         if response.status != 200:
             raise SnapshotError("Snapshot authorization failed.")
-        body = response.read(8193)
-        if len(body) > 8192:
-            raise SnapshotError("Snapshot authorization response exceeds its limit.")
-        ticket = json.loads(body)
-    expiry = datetime.fromisoformat(ticket["expires_at"])
-    lifetime = (expiry - datetime.now(UTC)).total_seconds()
-    signed = urlsplit(ticket["url"])
-    approved = urlsplit(config.blob_url)
-    if (not 0 < lifetime <= 600 or ticket["sha256"] != config.archive_hash or ticket["collection_id"] != COLLECTION_ID
-            or (signed.scheme, signed.netloc, signed.path) != (approved.scheme, approved.netloc, approved.path)
-            or not signed.query or signed.fragment):
-        raise SnapshotError("The snapshot ticket is expired or differs from the approved target.")
-    with tempfile.TemporaryDirectory(prefix="realtyai-download-") as download_directory:
+        with diagnostic_stage("broker_response"):
+            body = response.read(8193)
+            if len(body) > 8192:
+                raise SnapshotError("Snapshot authorization response exceeds its limit.")
+            ticket = json.loads(body)
+    with diagnostic_stage("ticket_validation"):
+        expiry = datetime.fromisoformat(ticket["expires_at"])
+        lifetime = (expiry - datetime.now(UTC)).total_seconds()
+        signed = urlsplit(ticket["url"])
+        approved = urlsplit(config.blob_url)
+        if not 0 < lifetime <= 600:
+            raise SnapshotError("Snapshot ticket expiration is invalid.")
+        if ticket["sha256"] != config.archive_hash:
+            raise SnapshotError("Snapshot ticket archive digest differs.")
+        if ticket["collection_id"] != COLLECTION_ID:
+            raise SnapshotError("Snapshot ticket collection identity differs.")
+        if ((signed.scheme, signed.netloc, signed.path) != (approved.scheme, approved.netloc, approved.path)
+                or not signed.query or signed.fragment):
+            raise SnapshotError("Snapshot ticket URL differs from the approved target.")
+    with diagnostic_stage("download_staging"):
+        download = tempfile.TemporaryDirectory(prefix="realtyai-download-")
+    with download as download_directory:
         archive = Path(download_directory) / "snapshot.tar.gz"
-        with opener.open(urllib.request.Request(ticket["url"]), timeout=30) as response, archive.open("xb") as output:
+        with diagnostic_stage("blob_download"), opener.open(urllib.request.Request(ticket["url"]), timeout=30) as response, archive.open("xb") as output:
             if response.status != 200 or int(response.headers.get("Content-Length", "0")) > MAX_DOWNLOAD:
                 raise SnapshotError("Snapshot download failed or exceeds its limit.")
             total, started = 0, time.monotonic()
@@ -263,10 +288,14 @@ def recover_from_environment() -> dict:
     if not os.getenv("REALTYAI_SNAPSHOT_ENDPOINT"):
         return {"status": "disabled"}
     try:
-        return recover(RecoveryConfig(Path(os.environ["REALTYAI_VECTOR_DB_DIR"]),
-            os.environ["REALTYAI_SNAPSHOT_ENDPOINT"], os.environ["REALTYAI_SNAPSHOT_CLIENT_TOKEN"],
-            os.environ["REALTYAI_SNAPSHOT_BLOB_URL"], os.environ["REALTYAI_SNAPSHOT_SHA256"],
-            os.environ["REALTYAI_SNAPSHOT_MANIFEST_SHA256"]))
+        with diagnostic_stage("configuration"):
+            config = RecoveryConfig(Path(os.environ["REALTYAI_VECTOR_DB_DIR"]),
+                os.environ["REALTYAI_SNAPSHOT_ENDPOINT"], os.environ["REALTYAI_SNAPSHOT_CLIENT_TOKEN"],
+                os.environ["REALTYAI_SNAPSHOT_BLOB_URL"], os.environ["REALTYAI_SNAPSHOT_SHA256"],
+                os.environ["REALTYAI_SNAPSHOT_MANIFEST_SHA256"])
+        return recover(config)
     except (AttributeError, KeyError, OSError, RuntimeError, ValueError, TypeError, sqlite3.Error, tarfile.TarError,
-            EOFError, HTTPException, zlib.error):
-        raise SnapshotError("Approved snapshot recovery failed; database preserved and readiness unavailable.") from None
+            EOFError, HTTPException, zlib.error) as error:
+        failure = SnapshotError("Approved snapshot recovery failed; database preserved and readiness unavailable.")
+        preserve_diagnostic(error, failure)
+        raise failure from None

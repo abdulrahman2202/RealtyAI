@@ -12,6 +12,8 @@ from typing import Any
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
 
+from backend.recovery_diagnostics import diagnostic_stage
+
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
@@ -37,6 +39,7 @@ class EmbeddingProfile:
 
 
 @lru_cache(maxsize=1)
+@diagnostic_stage("offline_model_profile")
 def cached_profile() -> EmbeddingProfile:
     hub = Path(os.getenv("HF_HUB_CACHE") or os.getenv("HUGGINGFACE_HUB_CACHE") or (
         Path(os.getenv("HF_HOME", str(Path.home() / ".cache" / "huggingface"))) / "hub"
@@ -57,6 +60,7 @@ def cached_profile() -> EmbeddingProfile:
 
 
 @lru_cache(maxsize=1)
+@diagnostic_stage("offline_embedding_model_loading")
 def cached_encoder() -> SentenceTransformer:
     profile = cached_profile()
     encoder = SentenceTransformer(str(profile.snapshot), local_files_only=True, device="cpu")

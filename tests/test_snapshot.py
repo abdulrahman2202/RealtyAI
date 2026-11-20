@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import io
 import json
+import logging
 import sqlite3
+import ssl
 import subprocess
 import sys
 import tarfile
@@ -17,6 +19,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend import main, snapshot
+from backend.recovery_diagnostics import (
+    describe_failure,
+    diagnostic_stage,
+    log_recovery_failure,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 TOKEN = "fixture_only_credential_12345678901234567890"
@@ -199,3 +206,120 @@ def test_existing_metadata_and_provenance_tampering_is_detected(config, approved
             connection.execute("UPDATE embedding_metadata SET string_value=NULL WHERE key='chroma:document'")
     with pytest.raises(snapshot.SnapshotError):
         snapshot.recover(config, opener=Opener(approved_archive["archive"], config))
+
+
+def configure_recovery(monkeypatch, config):
+    for name, value in {"REALTYAI_VECTOR_DB_DIR": str(config.target), "REALTYAI_SNAPSHOT_ENDPOINT": config.endpoint,
+            "REALTYAI_SNAPSHOT_CLIENT_TOKEN": config.token, "REALTYAI_SNAPSHOT_BLOB_URL": config.blob_url,
+            "REALTYAI_SNAPSHOT_SHA256": config.archive_hash,
+            "REALTYAI_SNAPSHOT_MANIFEST_SHA256": config.manifest_hash}.items():
+        monkeypatch.setenv(name, value)
+
+
+@pytest.mark.parametrize("phase,status", [("broker", 401), ("broker", 503), ("blob", 403)])
+def test_startup_logs_original_http_failure_stage_without_private_values(monkeypatch, config, approved_archive, caplog, phase, status):
+    private_url = "https://private.invalid/archive?signature=do-not-log-query"
+    private_reason = "Authorization: Bearer do-not-log-token api_key=do-not-log-key"
+    class FailingOpener(Opener):
+        def open(self, request, **kwargs):
+            if phase == "broker" or self.calls:
+                raise urllib.error.HTTPError(private_url, status, private_reason, {"Authorization": TOKEN}, None)
+            return super().open(request, **kwargs)
+    opener = FailingOpener(approved_archive["archive"], config)
+    configure_recovery(monkeypatch, config)
+    monkeypatch.setattr(snapshot.urllib.request, "build_opener", lambda *_args: opener)
+    called = []
+    monkeypatch.setattr(main, "readiness", lambda: called.append("readiness"))
+    with caplog.at_level(logging.WARNING, logger="uvicorn.error"), TestClient(main.app) as client:
+        assert client.get("/health").status_code == 200
+        assert client.get("/ready").status_code == 503
+        assert client.post("/api/chat", json={"question": "What services does Wasalt provide?"}).status_code == 503
+    assert not called and not config.target.exists()
+    expected_stage = "broker_request" if phase == "broker" else "blob_download"
+    assert f"stage={expected_stage}" in caplog.text
+    assert "exception=HTTPError" in caplog.text and f"http_status={status}" in caplog.text
+    for secret in [private_url, private_reason, "do-not-log-query", "do-not-log-token", "do-not-log-key", TOKEN, config.endpoint, config.blob_url]:
+        assert secret not in caplog.text
+    assert all(record.exc_info is None and record.stack_info is None for record in caplog.records)
+
+
+def test_missing_environment_key_preserves_exception_class_without_values(monkeypatch, config, caplog):
+    configure_recovery(monkeypatch, config)
+    monkeypatch.delenv("REALTYAI_SNAPSHOT_MANIFEST_SHA256")
+    with pytest.raises(snapshot.SnapshotError) as caught:
+        snapshot.recover_from_environment()
+    with caplog.at_level(logging.WARNING, logger="uvicorn.error"):
+        log_recovery_failure(caught.value)
+    assert "stage=configuration" in caplog.text and "exception=KeyError" in caplog.text
+    assert "configuration_key=REALTYAI_SNAPSHOT_MANIFEST_SHA256" in caplog.text
+    assert TOKEN not in caplog.text and config.archive_hash not in caplog.text and config.blob_url not in caplog.text
+
+
+@pytest.mark.parametrize("which,stage,message", [
+    ("archive", "archive_checksum", "Snapshot archive digest/size differs."),
+    ("manifest", "manifest_checksum", "Snapshot manifest digest differs."),
+])
+def test_checksum_failure_diagnostics_keep_validation_and_no_hash_values(config, approved_archive, caplog, which, stage, message):
+    args = [config.archive_hash, config.manifest_hash]
+    args[0 if which == "archive" else 1] = "0" * 64
+    with pytest.raises(snapshot.SnapshotError) as caught:
+        snapshot.restore_archive(Path(approved_archive["archive"]), config.target, *args)
+    with caplog.at_level(logging.WARNING, logger="uvicorn.error"):
+        log_recovery_failure(caught.value)
+    assert f"stage={stage}" in caplog.text and message in caplog.text
+    assert config.archive_hash not in caplog.text and config.manifest_hash not in caplog.text
+    assert not config.target.exists()
+
+
+def test_filesystem_permission_failure_keeps_original_type_and_hides_path(monkeypatch, config, approved_archive, caplog):
+    def denied(*_args, **_kwargs):
+        raise PermissionError(13, "do-not-log-filesystem-value", "/private/do-not-log-path")
+    monkeypatch.setattr(snapshot.tempfile, "TemporaryDirectory", denied)
+    with pytest.raises(PermissionError) as caught:
+        snapshot.restore_archive(Path(approved_archive["archive"]), config.target, config.archive_hash, config.manifest_hash)
+    with caplog.at_level(logging.WARNING, logger="uvicorn.error"):
+        log_recovery_failure(caught.value)
+    assert "stage=filesystem_staging" in caplog.text and "exception=PermissionError" in caplog.text and "errno=13" in caplog.text
+    assert "do-not-log" not in caplog.text and not config.target.exists()
+
+
+def test_non_json_broker_response_reports_response_stage(monkeypatch, config, approved_archive, caplog):
+    class NonJsonOpener(Opener):
+        def open(self, request, **kwargs):
+            return Response(b"<html>do-not-log-private-response</html>")
+    configure_recovery(monkeypatch, config)
+    monkeypatch.setattr(snapshot.urllib.request, "build_opener", lambda *_: NonJsonOpener(approved_archive["archive"], config))
+    with pytest.raises(snapshot.SnapshotError) as caught:
+        snapshot.recover_from_environment()
+    with caplog.at_level(logging.WARNING, logger="uvicorn.error"):
+        log_recovery_failure(caught.value)
+    assert "stage=broker_response" in caplog.text and "exception=JSONDecodeError" in caplog.text
+    assert "do-not-log-private-response" not in caplog.text
+
+
+@pytest.mark.parametrize("error", [ValueError("token=do-not-log-value"),
+    KeyError("https://private.invalid?secret=do-not-log-value"),
+    snapshot.SnapshotError("Authorization: Bearer do-not-log-value"),
+    RuntimeError("API key do-not-log-value\nhttps://private.invalid/?signature=do-not-log-query")])
+def test_unknown_error_arguments_never_enter_diagnostics(error, caplog):
+    with caplog.at_level(logging.WARNING, logger="uvicorn.error"):
+        log_recovery_failure(error, stage="ticket_validation")
+    assert "do-not-log" not in caplog.text and "https://" not in caplog.text and "Authorization" not in caplog.text
+
+
+def test_deepest_stage_survives_nested_contexts_without_wrapping_exception():
+    original = ValueError("private detail")
+    with pytest.raises(ValueError) as caught, diagnostic_stage("snapshot_recovery"), diagnostic_stage("ticket_validation"):
+        raise original
+    assert caught.value is original
+    assert describe_failure(original, "configuration").stage == "ticket_validation"
+
+
+@pytest.mark.parametrize("error,summary", [
+    (urllib.error.URLError(ssl.SSLCertVerificationError(1, "do-not-log-certificate-detail")), "TLS certificate verification failed."),
+    (ssl.SSLError(1, "do-not-log-protocol-detail"), "TLS connection failed."),
+])
+def test_tls_diagnostics_identify_only_the_known_failure(error, summary, caplog):
+    with caplog.at_level(logging.WARNING, logger="uvicorn.error"):
+        log_recovery_failure(error, stage="blob_download")
+    assert summary in caplog.text and "do-not-log" not in caplog.text

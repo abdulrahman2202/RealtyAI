@@ -1,6 +1,71 @@
 # Phase 7–8 Dockerization and deployment status
 
-**Current status — 2026-11-20 IST: Option B implemented, archive prepared, local verification complete. Public deployment is reserved for the user's manual dashboards.** Hosting remains Vercel Hobby + Render Free only, with ₹0 incurred hosting charges. No hosting authentication, private Blob creation/upload or public provisioning was performed. Working public Vercel/Render URLs: **none yet**.
+**Latest investigation: the user reports production Render startup with failed snapshot recovery and readiness 503. The underlying production exception is not available in the supplied logs. Safe diagnostics have been added; no deployment or hosting-account access was performed during this investigation.** The earlier implementation and local-test evidence below is preserved. Actual public URLs have not been supplied or tested by the agent.
+
+## Production recovery failure investigation
+
+### Proven findings and limits
+
+The only production evidence supplied is `Chroma snapshot recovery failed; readiness is unavailable.`, HTTP 503 from `/ready`, and successful server startup. The user confirmed no additional exception/stage logs are available. These observations prove the startup recovery function failed and the readiness gate stayed closed. They do **not** identify which configuration, broker, download, checksum, extraction or SQLite operation failed. No production root cause is guessed, and this update does not claim to have repaired the underlying deployed failure.
+
+**Proven diagnostic defect:** [recover_from_environment](../backend/snapshot.py) previously caught filesystem/network/validation exceptions and raised a new generic `SnapshotError` with `from None`. [The lifespan handler](../backend/main.py) then caught that replacement and logged only the generic warning. The original class, error reason and failing stage were absent from logs. A separate `/ready` handler also returned generic 503 without logging its validation exception.
+
+The recovery warning occurs **before Chroma client initialization and offline profile loading on `/ready`** in this implementation. Recovery verifies the installed Chroma package version and SQLite/manifest contents without opening a `PersistentClient` or loading model weights. Since `snapshot_ready` remains false, the middleware answers `/ready` and `/api/chat` with 503 before their normal handlers run. Chroma/Python library imports occur before lifespan; successful application startup alone does not certify the local cache, but model weight loading is not a step of the failed recovery function.
+
+### Complete flow and diagnostic stages
+
+| Stage | Operation and preserved check |
+| --- | --- |
+| `configuration` | Read required settings, validate HTTPS Vercel endpoint/exact private Blob URL, service credential format and both pinned hashes |
+| `existing_database_validation` | Refuse a linked/unapproved populated target; validate its approved stored manifest and existing data without replacing it |
+| `broker_request` | GET the configured Vercel route with backend service authentication; redirects remain blocked |
+| `broker_response` | Bound response size and parse JSON; response text and headers are never logged |
+| `ticket_validation` | Validate expiry, approved archive hash, collection UUID and exact signed destination; signed URL/query are never logged |
+| `download_staging` / `blob_download` | Create a disposable download location, fetch the signed private Blob, enforce status/size/time limits |
+| `target_directory` / `archive_checksum` | Preserve any nonempty target and verify archive size/SHA-256 |
+| `filesystem_staging` / `archive_header` | Create a non-root staging directory, decode gzip/tar and require the first manifest member |
+| `manifest_checksum` / `manifest_validation` | Check the pinned manifest SHA-256, approved identity/provenance and complete bounded file list |
+| `archive_extraction` | Reject unsafe paths, duplicates, links and unexpected files; verify each file size and SHA-256 |
+| `database_validation` | Check Chroma 1.5.9, read-only SQLite integrity, exact UUID/counts, reviewed text hashes, full metadata/original URLs and storage files |
+| `filesystem_promotion` | Promote only the fully validated directory; never replace a populated database |
+| `chroma_initialization` / `readiness_validation` | After successful recovery, `/ready` opens the existing collection and checks UUID, 84 chunks, 46/38 sources, 12 documents and cosine |
+| `offline_model_profile` | Validate/read the offline tokenizer/configuration, approved revision/dimension and required cache files, including calls made while resolving the collection |
+| `offline_embedding_model_loading` | On a later chat request, initialize cached SentenceTransformer weights locally; normal embedding failure types/cache behavior remain unchanged |
+
+The Vercel broker now logs constant summaries for `broker_configuration`, `broker_authentication`, `broker_request_validation`, `delegation_issue`, `url_signing` and `signed_url_validation`. This distinguishes an upstream 503 from the broker's own configuration check versus its OIDC/delegation/signing code when the user inspects both providers' logs.
+
+### Safe logging changes
+
+Added [recovery_diagnostics.py](../backend/recovery_diagnostics.py). Stage contexts attach a safe record to the **original** exception and re-raise its original type. The generic public `SnapshotError` retains this diagnostic record before replacing the raw exception. Startup and later readiness warnings include stage, approved exception-class name, fixed/allowlisted message, numeric HTTP status/errno when present, and an approved missing configuration **key name** when applicable.
+
+Raw exception messages, tracebacks, cause chains, filesystem paths, HTTP bodies/headers, API keys, service/delegation tokens, signed URLs, query parameters and environment values are never logged. Unknown messages/types are withheld. TLS certificate verification is reported specifically only when the exception identifies that condition; other SSL failures get a generic TLS-connection summary. Broker SDK errors are represented by a permitted class name and a caller-owned constant summary.
+
+Example **illustrative diagnostic, not evidence of the current production cause**:
+
+```text
+Chroma snapshot recovery failed; readiness is unavailable. stage=broker_request exception=HTTPError message=Remote HTTP request was rejected. http_status=401 errno=None configuration_key=None
+```
+
+The authentication, URL/redirect restrictions, expiry bounds, SHA-256 pins, member/file limits, source/model provenance checks, nonempty-target protection and readiness/chat 503 behavior are unchanged. Existing embedding exception types and cache interfaces are preserved. No source ingestion, database/model migration, validation bypass, new environment logging setting, or paid resource was introduced.
+
+### Exact manual redeployment and next diagnostic steps
+
+1. In the user's existing Vercel project, redeploy the updated broker source with the same Production server configuration and private store connection. Keep Node 22, `npm ci` and `npm run build`. Do not expose or print authenticated ticket responses or change service credentials merely to investigate.
+2. Rebuild the backend locally from this source using `docker build -f backend/Dockerfile -t YOUR-NAMESPACE/realtyai-backend:recovery-diagnostics .`; publish that image using the user's existing registry workflow. The existing approved offline model assets remain in the image; neither database nor the archive belongs in the image.
+3. In the user's Render dashboard, deploy that new image/digest on the existing **Free** service. Keep the existing entrypoint, `/ready` health path, approved collection/path/UUID, both pinned hashes and all Groq settings. No snapshot re-upload, replacement, ingestion or data deletion is required.
+4. Inspect the first safe failure line after startup, containing **stage, exception, message, HTTP status/errno**. If its stage is `broker_request` with 401/403/redirect status, inspect the corresponding Vercel authentication/routing log; with 503, inspect the new Vercel broker stage. `blob_download` identifies downstream object/network access; `archive_checksum`/`manifest_checksum` identifies a pin mismatch; `filesystem_staging`/`filesystem_promotion` with `PermissionError` identifies a denied filesystem operation; `database_validation` identifies archive content/SQLite validation. These are interpretation rules, not claims about the present cause.
+5. Correct only the condition demonstrated by those diagnostics. Preserve the approved archive and hash values; do not make a failing archive pass by changing pins, publishing the store, weakening GET-only authentication, disabling TLS, clearing a target or bypassing readiness.
+6. If recovery succeeds but `/ready` subsequently fails, use `chroma_initialization`, `readiness_validation` or `offline_model_profile` diagnostics to investigate that distinct failure. Model weights initialize on chat after readiness. Share only the newly sanitized failure line if further analysis is needed; credentials, configuration values and URLs are unnecessary.
+
+No redeployment, account access, production network probe or hosting credential request was performed. Exact production classification remains **pending new safe diagnostics from the user's redeployment**. The initial underlying production exception cannot be reconstructed from the old generic warning.
+
+### Scoped verification and preservation
+
+Ran the relevant backend/API/RAG/recovery suite once after these changes: **105 passed**, 23 existing deprecation warnings, 18.94 seconds. The five broker tests, frontend TypeScript check and ESLint check passed. Scoped Ruff passed after one test-import ordering correction; only lint was repeated for that correction. No Docker build, deployment or live provider test was performed for this diagnostic-only change.
+
+Focused regressions cover broker 401/503 versus Blob 403 stage identification, preservation of original HTTP/permission/JSON exception classes through the generic startup wrapper, missing configuration-key names without values, archive and manifest mismatch stages, permission errors without file paths, TLS classification without guessing, non-JSON broker responses without body logging, hostile exception arguments, deepest-stage preservation, separate Chroma/offline-profile errors, and Vercel configuration/signing failures without SDK message leakage. Startup failure tests confirm `/health` remains available, `/ready` and `/api/chat` remain 503, and downstream readiness/model initialization is not invoked after failed recovery.
+
+All **18 protected files** matched before-work hashes, sizes and modification times: both original database directories, the approved archive and manifest, chunk review and ingestion manifest. Approved archive/manifest hashes remain the values already recorded below. No snapshot was regenerated or replaced outside isolated test fixtures, no existing Chroma database was opened for writing, and no data or security safeguard changed. See [diagnostic verification](../.tmp/phase78-render-diagnostics/verification.json).
 
 ## Final Option B implementation
 

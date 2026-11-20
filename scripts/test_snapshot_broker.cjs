@@ -11,7 +11,9 @@ const ts = frontendRequire('typescript');
 const source = fs.readFileSync(path.join(root, 'frontend/src/lib/snapshot-broker.ts'), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } });
 const exportsObject = {};
-vm.runInNewContext(compiled.outputText, { exports: exportsObject, require, Buffer, Response, URL, Date, process, Error });
+const diagnosticLogs = [];
+vm.runInNewContext(compiled.outputText, { exports: exportsObject, require, Buffer, Response, URL, Date, process, Error,
+  console: { warn: (...values) => diagnosticLogs.push(values) } });
 const create = exportsObject.createSnapshotHandler;
 const token = 'fixture_only_credential_12345678901234567890';
 const pathname = 'realtyai_multisource_v1-' + 'a'.repeat(64) + '.tar.gz';
@@ -57,4 +59,29 @@ test('missing configuration and provider failures return sanitized 503', async (
   assert.equal((await create(issue, sign, () => ({}))(request())).status, 503);
   const response = await create(issue, sign, () => env)(request({ Authorization: 'Bearer ' + token }));
   assert.equal(response.status, 503); assert.ok(!(await response.text()).includes('private-token'));
+});
+
+test('broker logs configuration and SDK failure stages without private values', async () => {
+  diagnosticLogs.length = 0;
+  const issue = async () => { throw Error('Authorization: Bearer do-not-log-token https://private.invalid/?signature=do-not-log-query'); };
+  const sign = async () => { throw Error('do-not-log-signing-value'); };
+  await create(issue, sign, () => ({}))(request());
+  await create(issue, sign, () => env)(request({ Authorization: 'Bearer ' + token }));
+  const stages = diagnosticLogs.map(row => row[1].stage);
+  assert.ok(stages.includes('broker_configuration')); assert.ok(stages.includes('delegation_issue'));
+  const output = JSON.stringify(diagnosticLogs);
+  for (const privateValue of [token, env.REALTYAI_SNAPSHOT_SHA256, pathname, 'do-not-log', 'https://', 'Authorization']) {
+    assert.ok(!output.includes(privateValue));
+  }
+  assert.equal(diagnosticLogs[1][1].exception_class, 'Error');
+});
+
+test('broker identifies URL signing failure without logging the SDK exception', async () => {
+  diagnosticLogs.length = 0;
+  const issue = async options => ({ delegationToken: 'fixture', clientSigningToken: 'private-fixture', validUntil: options.validUntil });
+  const sign = async () => { throw Error('do-not-log-signed-url'); };
+  const response = await create(issue, sign, () => env)(request({ Authorization: 'Bearer ' + token }));
+  assert.equal(response.status, 503);
+  assert.equal(diagnosticLogs[0][1].stage, 'url_signing');
+  assert.ok(!JSON.stringify(diagnosticLogs).includes('do-not-log'));
 });

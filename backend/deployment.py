@@ -7,10 +7,13 @@ from collections import Counter
 
 from backend.embedding import cached_profile
 from backend.rag import RetrievalError, _resolve_collection
+from backend.recovery_diagnostics import diagnostic_stage
 
 
+@diagnostic_stage("readiness_validation")
 def readiness() -> dict:
-    collection = _resolve_collection()
+    with diagnostic_stage("chroma_initialization"):
+        collection = _resolve_collection()
     if collection is None:
         raise RetrievalError("The approved collection is not available.")
     expected_uuid = os.getenv("REALTYAI_COLLECTION_ID")
@@ -26,11 +29,12 @@ def readiness() -> dict:
         raise RetrievalError("The approved source counts are not available.")
     if len({item["document_id"] for item in metadata}) != 12:
         raise RetrievalError("The approved source documents are not available.")
-    profile = cached_profile()
-    if profile.revision != "1110a243fdf4706b3f48f1d95db1a4f5529b4d41" or profile.dimension != 384:
-        raise RetrievalError("The approved offline embedding model is not available.")
-    required = ["model.safetensors", "config.json", "sentence_bert_config.json", "tokenizer.json", "1_Pooling/config.json"]
-    if any(not (profile.snapshot / filename).is_file() for filename in required):
-        raise RetrievalError("The offline model cache is incomplete.")
+    with diagnostic_stage("offline_model_profile"):
+        profile = cached_profile()
+        if profile.revision != "1110a243fdf4706b3f48f1d95db1a4f5529b4d41" or profile.dimension != 384:
+            raise RetrievalError("The approved offline embedding model is not available.")
+        required = ["model.safetensors", "config.json", "sentence_bert_config.json", "tokenizer.json", "1_Pooling/config.json"]
+        if any(not (profile.snapshot / filename).is_file() for filename in required):
+            raise RetrievalError("The offline model cache is incomplete.")
     return {"status": "ready", "service": "RealtyAI", "collection": collection.name,
         "collection_id": str(collection.id), "chunks": 84}

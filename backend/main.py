@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 
 from backend.api import routes
 from backend.deployment import readiness
+from backend.recovery_diagnostics import log_recovery_failure
 from backend.snapshot import SnapshotError, recover_from_environment
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -27,9 +28,9 @@ async def lifespan(application: FastAPI):
         application.state.snapshot_result = await asyncio.to_thread(recover_from_environment)
         application.state.snapshot_ready = True
         logging.getLogger("uvicorn.error").info("Chroma snapshot startup: %s", application.state.snapshot_result["status"])
-    except SnapshotError:
+    except SnapshotError as error:
         application.state.snapshot_result = {"status": "failed"}
-        logging.getLogger("uvicorn.error").warning("Chroma snapshot recovery failed; readiness is unavailable.")
+        log_recovery_failure(error)
     yield
 
 
@@ -96,5 +97,6 @@ async def health() -> dict[str, str]:
 def ready() -> dict:
     try:
         return readiness()
-    except (ChromaError, KeyError, OSError, RuntimeError, TypeError, ValueError):
+    except (ChromaError, KeyError, OSError, RuntimeError, TypeError, ValueError) as error:
+        log_recovery_failure(error, stage="readiness_validation", readiness=True)
         raise HTTPException(status_code=503, detail="The approved RAG database or offline model is not ready.") from None
