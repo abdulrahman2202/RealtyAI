@@ -76,38 +76,38 @@ receive AI-generated answers grounded in source evidence.
 
 ```mermaid
 flowchart TD
-    subgraph Frontend [Frontend (Next.js 15.x)]
+    subgraph Frontend["Frontend (Next.js 15.x)"]
         direction TB
-        UI[Chat UI / Sidebar / Header]
-        API[api.ts — POST /api.chat, GET /health]
-        ENV[.env.local — NEXT_PUBLIC_API_URL]
+        UI["Chat UI / Sidebar / Header"]
+        API["api.ts — POST /api.chat, GET /health"]
+        ENV[".env.local — NEXT_PUBLIC_API_URL"]
     end
 
-    subgraph Backend [Backend (FastAPI + Python 3.12)]
+    subgraph Backend["Backend (FastAPI + Python 3.12)"]
         direction TB
-        APP[FastAPI app — main.py]
-        CORS[CORSMiddleware]
-        HEALTH[GET /health]
-        READY[GET /ready]
-        CHAT[POST /api/chat]
-        SNAPSHOT[snapshot.py — recovery broker]
-        LLM[Groq LLM — openai/gpt-oss-120b]
-        RAG[rag.py — ChromaDB + embeddings]
-        IDX[indexing.py — append-only Chroma indexing]
+        APP["FastAPI app — main.py"]
+        CORS["CORSMiddleware"]
+        HEALTH["GET /health"]
+        READY["GET /ready"]
+        CHAT["POST /api/chat"]
+        SNAPSHOT["snapshot.py — recovery broker"]
+        LLM["Groq LLM — openai/gpt-oss-120b"]
+        RAG["rag.py — ChromaDB + embeddings"]
+        IDX["indexing.py — append-only Chroma indexing"]
     end
 
-    subgraph VectorDB [ChromaDB Persistent Storage]
+    subgraph VectorDB["ChromaDB Persistent Storage"]
         direction TB
-        COL[Collection: realtyai_multisource_v1]
-        IDX2[Append-only indexing]
-        SQL[SQLite — chroma.sqlite3]
+        COL["Collection: realtyai_multisource_v1"]
+        IDX2["Append-only indexing"]
+        SQL["SQLite — chroma.sqlite3"]
     end
 
-    subgraph External [External Services]
+    subgraph External["External Services"]
         direction TB
-        GROQ[Groq API]
-        BLOB[Vercel Blob (private)]
-        VERCEL[Vercel API route: /api/internal/chroma-snapshot]
+        GROQ["Groq API"]
+        BLOB["Vercel Blob (private)"]
+        VERCEL["Vercel API route: /api/internal/chroma-snapshot"]
     end
 
     UI --> API
@@ -131,18 +131,18 @@ flowchart TD
 
 ```mermaid
 graph TD
-    question[User Question] -->|POST /api/chat| API
-    API -->|Validate input| Backend
-    Backend -->|Recover snapshot (if configured)| Snapshot
-    Snapshot -->|Retrieve from ChromaDB| RAG
-    RAG -->|Hybrid search (lexical + semantic)| Retrieval
-    Retrieval -->|Top-k chunks with source filters| Context
-    Context -->|Grounded system prompt + citations| LLM
-    LLM -->|Groq generation (openai/gpt-oss-120b)| Answer
-    Answer -->|JSON {answer, sources, success}| API
-    API -->|Response to client| UI
+    question["User Question"] -->|"POST /api/chat"| API
+    API -->|"Validate input"| Backend
+    Backend -->|"Recover snapshot (if configured)"| Snapshot
+    Snapshot -->|"Retrieve from ChromaDB"| RAG
+    RAG -->|"Hybrid search (lexical + semantic)"| Retrieval
+    Retrieval -->|"Top-k chunks with source filters"| Context
+    Context -->|"Grounded system prompt + citations"| LLM
+    LLM -->|"Groq generation (openai/gpt-oss-120b)"| Answer
+    Answer -->|"JSON {answer, sources, success}"| API
+    API -->|"Response to client"| UI
     
-    note RAG / "Hybrid search combines lexical entity matching + semantic vector similarity with source/page-type scoping and distance normalization"
+    RAG -.-> RAGNote["Hybrid search combines lexical entity matching + semantic vector similarity with source/page-type scoping and distance normalization"]
     
     style Answer fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
     style LLM fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
@@ -924,34 +924,3 @@ For deployment guidance, see `deployment/MANUAL_DEPLOYMENT.md`.
 
 ---
 
-## Verification Checklist (Final README Review)
-
-- [x] All 21 sections present and properly structured
-- [x] Technical accuracy verified against source code, Docker files, configuration, and test results
-- [x] Frontend: Next.js 15.5.29, React 18.3.1, TypeScript 5.4.5, Tailwind CSS 3.4.3
-- [x] Backend: FastAPI, Python 3.12, Groq API
-- [x] Vector database: ChromaDB 1.5.9
-- [x] Embeddings: SentenceTransformers `all-MiniLM-L6-v2`, revision 1110a243..., dimension 384
-- [x] Retrieval: Hybrid lexical + semantic with source-aware context
-- [x] LLM: Groq API using `openai/gpt-oss-120b`
-- [x] Sources: DarGlobal (46 chunks) and Wasalt (38 chunks)
-- [x] Docker: separate frontend and backend containers
-- [x] Snapshot recovery: private Vercel Blob and authenticated GET-only signed URL broker through Vercel API route
-- [x] 84-chunk corpus: 46 DarGlobal + 38 Wasalt across 12 documents
-- [x] No secrets or private snapshot paths exposed
-- [x] Deployment status honestly reported (completed locally, pending public deployment)
-- [x] PowerShell commands for Windows 11
-- [x] Environment variable placeholders (no real keys)
-- [x] Links to `deployment/MANUAL_DEPLOYMENT.md` for detailed deployment
-- [x] `.env`, `.tmp`, model caches, databases excluded from Git
-- [x] Mermaid architecture and RAG workflow diagrams
-- [x] Table of contents
-- [x] Readable Markdown tables and code blocks
-- [x] Relative links to existing documentation
-- [x] No excessive emojis, marketing exaggerations, or repeated information
-- [x] Existing project identity and UI theme preserved
-- [x] Other documentation files not deleted or rewritten
-
----
-
-**Final note**: This README accurately documents the current RealtyAI application state. Public deployment is not yet complete — manual Vercel and Render setup is required. All configuration, metrics, and architecture details reflect the actual project code and files.
