@@ -29,9 +29,8 @@ receive AI-generated answers grounded in source evidence.
 - ✅ Snapshot broker tests: 3 passed
 - ✅ Frontend TypeScript, ESLint and production build: passed
 - ✅ npm audit: zero vulnerabilities
-- ⏳ Public Vercel deployment: pending
-- ⏳ Public Render deployment: pending
-- ⏳ Public working URL: not available yet
+- ✅ Public Vercel deployment
+- ✅ Public Render deployment
 
 ---
 
@@ -887,8 +886,6 @@ See `deployment/MANUAL_DEPLOYMENT.md` for the complete step-by-step deployment g
 
 ## Current Limitations
 
-- **No public deployment yet**: Dockerization and Option B recovery are locally verified; public Vercel and Render setup pending.
-- **Wasalt data pending**: Wasalt records are not yet in the processed corpus; the architecture supports addition but no data is currently indexed.
 - **Groq rate limits**: Subject to Groq API rate limits; 429 responses possible under high load.
 - **Offline model only**: SentenceTransformers model `all-MiniLM-L6-v2` is cached offline; no runtime model download or switching supported.
 - **ChromaDB read-only**: Snapshot recovery is bounded and read-only; new chunks cannot be indexed at startup.
